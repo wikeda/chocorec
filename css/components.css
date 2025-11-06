@@ -142,9 +142,18 @@ select:disabled {
 /* グラフコントロール */
 .chart-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0;
 }
 
 .chart-controls {
@@ -186,17 +195,16 @@ select:disabled {
   background-color: #f3f4f6;
 }
 
+.btn-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .hidden {
   display: none !important;
 }
 
 /* タブ */
-.chart-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
 .tab {
   padding: 8px 16px;
   border: 1px solid #d1d5db;
@@ -308,4 +316,3 @@ select:disabled {
     width: 100%;
   }
 }
-

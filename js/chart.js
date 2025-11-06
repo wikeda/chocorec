@@ -154,6 +154,7 @@ function updateWeekChart() {
   
   // 週の表示ラベルを更新
   updateWeekLabel();
+  updateNavButtons();
 }
 
 /**
@@ -175,6 +176,7 @@ function updateMonthChart() {
   
   // 月の表示ラベルを更新
   updateMonthLabel();
+  updateNavButtons();
 }
 
 /**
@@ -232,12 +234,11 @@ function getWeekLabel(offset) {
     return '先週';
   } else if (offset === -2) {
     return '2週間前';
-  } else if (offset === 1) {
-    return '来週';
   } else if (offset < 0) {
     return `${Math.abs(offset)}週間前`;
   } else {
-    return `${offset}週間後`;
+    // 未来への移動は無効化されているので、通常は表示されない
+    return '今週';
   }
 }
 
@@ -253,12 +254,11 @@ function getMonthLabel(offset) {
     return '先月';
   } else if (offset === -2) {
     return '2ヶ月前';
-  } else if (offset === 1) {
-    return '来月';
   } else if (offset < 0) {
     return `${Math.abs(offset)}ヶ月前`;
   } else {
-    return `${offset}ヶ月後`;
+    // 未来への移動は無効化されているので、通常は表示されない
+    return '今月';
   }
 }
 
@@ -268,14 +268,15 @@ function getMonthLabel(offset) {
 function moveWeekBackward() {
   currentWeekOffset--;
   updateWeekChart();
+  updateNavButtons();
 }
 
 /**
- * 週を後に移動する
+ * 週を後に移動する（無効化：未来の睡眠は記録しない）
  */
 function moveWeekForward() {
-  currentWeekOffset++;
-  updateWeekChart();
+  // 未来への移動は無効化
+  return;
 }
 
 /**
@@ -284,6 +285,7 @@ function moveWeekForward() {
 function resetWeek() {
   currentWeekOffset = 0;
   updateWeekChart();
+  updateNavButtons();
 }
 
 /**
@@ -292,14 +294,15 @@ function resetWeek() {
 function moveMonthBackward() {
   currentMonthOffset--;
   updateMonthChart();
+  updateNavButtons();
 }
 
 /**
- * 月を後に移動する
+ * 月を後に移動する（無効化：未来の睡眠は記録しない）
  */
 function moveMonthForward() {
-  currentMonthOffset++;
-  updateMonthChart();
+  // 未来への移動は無効化
+  return;
 }
 
 /**
@@ -308,6 +311,24 @@ function moveMonthForward() {
 function resetMonth() {
   currentMonthOffset = 0;
   updateMonthChart();
+  updateNavButtons();
+}
+
+/**
+ * ナビゲーションボタンの状態を更新する
+ */
+function updateNavButtons() {
+  // 週のナビゲーションボタン（未来への移動は無効化されているので、常に有効）
+  const weekPrevBtn = document.getElementById('week-prev-btn');
+  if (weekPrevBtn) {
+    weekPrevBtn.disabled = false;
+  }
+  
+  // 月のナビゲーションボタン（未来への移動は無効化されているので、常に有効）
+  const monthPrevBtn = document.getElementById('month-prev-btn');
+  if (monthPrevBtn) {
+    monthPrevBtn.disabled = false;
+  }
 }
 
 /**
@@ -324,6 +345,7 @@ function setupChartTabs() {
       // 週のオフセットをリセット
       currentWeekOffset = 0;
       updateWeekChart();
+      updateNavButtons();
     });
   }
   
@@ -334,6 +356,7 @@ function setupChartTabs() {
       // 月のオフセットをリセット
       currentMonthOffset = 0;
       updateMonthChart();
+      updateNavButtons();
     });
   }
 }
@@ -367,5 +390,6 @@ function setupChartControls() {
   
   // 初期状態は週次を表示
   showWeekControls();
+  updateNavButtons();
 }
 
