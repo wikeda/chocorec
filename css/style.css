@@ -1,0 +1,151 @@
+/**
+ * 基本スタイル
+ * リセット、基本レイアウト、タイポグラフィ
+ */
+
+/* リセット */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 基本設定 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ヘッダー */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* メインコンテンツ */
+.main {
+  padding: 16px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* セクション */
+section {
+  margin-bottom: 24px;
+}
+
+section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+
+/* グラフセクション */
+.chart-section {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.chart-container {
+  min-height: 300px;
+  position: relative;
+  width: 100%;
+}
+
+#sleep-chart {
+  max-height: 400px;
+}
+
+/* 記録表セクション */
+.recent-records {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.link-history {
+  display: inline-block;
+  margin-top: 12px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.link-history:hover {
+  text-decoration: underline;
+}
+
+/* 入力フォームセクション */
+.input-form {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  position: sticky;
+  bottom: 0;
+  background-color: #f9fafb;
+}
+
+/* フォーム */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.separator {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .header {
+    padding: 12px;
+  }
+  
+  .header h1 {
+    font-size: 20px;
+  }
+  
+  .main {
+    padding: 12px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .separator {
+    display: none;
+  }
+}
+

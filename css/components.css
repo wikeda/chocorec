@@ -1,0 +1,260 @@
+/**
+ * UIコンポーネントスタイル
+ * ボタン、フォーム、テーブルなどのコンポーネント
+ */
+
+/* ボタン */
+.btn-download,
+.btn-submit,
+.btn-back,
+.btn-save,
+.btn-cancel {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px; /* タッチ操作を考慮した最小サイズ */
+  touch-action: manipulation;
+}
+
+.btn-download {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-download:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-download:active {
+  background-color: #1e40af;
+}
+
+.btn-submit {
+  background-color: #10b981;
+  color: #ffffff;
+  width: 100%;
+}
+
+.btn-submit:hover {
+  background-color: #059669;
+}
+
+.btn-submit:active {
+  background-color: #047857;
+}
+
+.btn-submit:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-back {
+  background-color: #6b7280;
+  color: #ffffff;
+}
+
+.btn-back:hover {
+  background-color: #4b5563;
+}
+
+.btn-save {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.btn-save:hover {
+  background-color: #059669;
+}
+
+.btn-cancel {
+  background-color: #6b7280;
+  color: #ffffff;
+}
+
+.btn-cancel:hover {
+  background-color: #4b5563;
+}
+
+/* セレクトボックス */
+select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #1f2937;
+  min-height: 44px; /* タッチ操作を考慮した最小サイズ */
+  touch-action: manipulation;
+  flex: 1;
+}
+
+select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+select:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* テーブル */
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.records-table thead {
+  background-color: #f9fafb;
+}
+
+.records-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.records-table td {
+  padding: 12px;
+  font-size: 14px;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.records-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.records-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* タブ */
+.chart-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.tab:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.tab.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.tab.active:hover {
+  background-color: #1d4ed8;
+}
+
+/* モーダル */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 480px) {
+  .btn-download {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  select {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+  
+  .records-table th,
+  .records-table td {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .tab {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
+}
+

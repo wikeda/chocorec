@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="睡眠記録の過去データ一覧">
+  <title>過去記録 - RecSleep</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/history.css">
+</head>
+<body>
+  <header class="header">
+    <button id="back-btn" class="btn-back">← 戻る</button>
+    <h1>過去記録</h1>
+  </header>
+  
+  <main class="main">
+    <section class="history-section">
+      <div id="history-list" class="history-list">
+        <!-- 動的に生成 -->
+      </div>
+    </section>
+    
+    <!-- 編集モーダル -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>記録を編集</h2>
+        <form id="edit-form">
+          <div class="form-row">
+            <select id="edit-date-select" name="date" required>
+              <!-- 過去7日を動的に生成 -->
+            </select>
+            <select id="edit-hour-select" name="hour" required>
+              <!-- 00-23を動的に生成 -->
+            </select>
+            <span class="separator">:</span>
+            <select id="edit-minute-select" name="minute" required>
+              <!-- 00-55を5分刻みで生成 -->
+            </select>
+            <span class="separator">〜</span>
+            <select id="edit-duration-hour-select" name="durationHour" required>
+              <!-- 00-23を動的に生成 -->
+            </select>
+            <span class="separator">:</span>
+            <select id="edit-duration-minute-select" name="durationMinute" required>
+              <!-- 00-55を5分刻みで生成 -->
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="button" id="cancel-btn" class="btn-cancel">キャンセル</button>
+            <button type="submit" class="btn-save">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  
+  <script src="js/sleepType.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/validator.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/history.js"></script>
+</body>
+</html>
+

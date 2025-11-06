@@ -1,0 +1,143 @@
+/**
+ * 過去記録一覧画面のスタイル
+ */
+
+/* 過去記録セクション */
+.history-section {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.no-records {
+  text-align: center;
+  color: #6b7280;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* 日付グループ */
+.date-group {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+}
+
+.date-group:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.date-header {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.records-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 記録アイテム */
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.record-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.record-time {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.record-duration {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* 睡眠種類バッジ */
+.sleep-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.sleep-type-night {
+  background-color: #1e3a8a;
+  color: #ffffff;
+}
+
+.sleep-type-day {
+  background-color: #ea580c;
+  color: #ffffff;
+}
+
+/* 編集ボタン */
+.btn-edit {
+  padding: 8px 16px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-edit:hover {
+  background-color: #eff6ff;
+}
+
+.btn-edit:active {
+  background-color: #dbeafe;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 480px) {
+  .record-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .btn-edit {
+    width: 100%;
+  }
+  
+  .date-header {
+    font-size: 16px;
+  }
+  
+  .record-time {
+    font-size: 14px;
+  }
+}
+
