@@ -141,7 +141,8 @@ select:disabled {
 }
 
 /* 日付セレクトは幅を広く */
-#date-select.form-select {
+#date-select.form-select,
+#edit-date-select.form-select {
   flex: 1 1 auto;
   min-width: 140px;
 }
