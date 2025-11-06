@@ -16,7 +16,7 @@ let currentMonthOffset = 0; // 月のオフセット（0=今月、-1=先月、1=
  */
 function aggregateDailySleep(records, startDate, days) {
   const aggregated = {};
-  
+
   // 日付ごとの初期化
   for (let i = 0; i < days; i++) {
     const date = new Date(startDate);
@@ -28,18 +28,45 @@ function aggregateDailySleep(records, startDate, days) {
       day: 0     // 分単位
     };
   }
-  
-  // レコードを集計
+
+  // レコードを集計（日付をまたぐ睡眠時間を分割）
   records.forEach(record => {
-    const recordDate = new Date(record.startDateTime);
-    const dateKey = formatDate(recordDate);
-    
-    if (aggregated[dateKey]) {
-      const totalMinutes = record.sleepDuration.hours * 60 + record.sleepDuration.minutes;
-      aggregated[dateKey][record.sleepType] += totalMinutes;
+    const sleepStart = new Date(record.startDateTime);
+    const totalMinutes = record.sleepDuration.hours * 60 + record.sleepDuration.minutes;
+    const sleepEnd = new Date(sleepStart.getTime() + totalMinutes * 60 * 1000);
+
+    // 睡眠開始日から終了日まで、日ごとに分割して集計
+    let currentDate = new Date(sleepStart);
+    currentDate.setHours(0, 0, 0, 0);
+
+    while (currentDate < sleepEnd) {
+      const dateKey = formatDate(currentDate);
+
+      if (aggregated[dateKey]) {
+        // この日の開始時刻と終了時刻を計算
+        const dayStart = new Date(currentDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(currentDate);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        // この日における実際の睡眠開始・終了時刻
+        const actualStart = sleepStart > dayStart ? sleepStart : dayStart;
+        const actualEnd = sleepEnd < dayEnd ? sleepEnd : dayEnd;
+
+        // この日の睡眠時間（分）
+        const minutesThisDay = Math.round((actualEnd - actualStart) / (60 * 1000));
+
+        if (minutesThisDay > 0) {
+          // 睡眠の種類を判定（開始時刻で判定）
+          aggregated[dateKey][record.sleepType] += minutesThisDay;
+        }
+      }
+
+      // 次の日へ
+      currentDate.setDate(currentDate.getDate() + 1);
     }
   });
-  
+
   return Object.values(aggregated);
 }
 
