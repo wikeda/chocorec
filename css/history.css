@@ -13,7 +13,7 @@
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .no-records {
@@ -35,45 +35,60 @@
 }
 
 .date-header {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 12px;
-}
-
-.records-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 記録アイテム */
-.record-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background-color: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-}
-
-.record-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.record-time {
   font-size: 16px;
   font-weight: 600;
   color: #1f2937;
+  margin-bottom: 8px;
 }
 
-.record-duration {
+/* テーブルスタイル */
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.record-row {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.record-row:last-child {
+  border-bottom: none;
+}
+
+.record-row td {
+  padding: 8px 4px;
+  vertical-align: middle;
+}
+
+/* セル */
+.cell-radio {
+  width: 40px;
+  text-align: center;
+}
+
+.cell-radio input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.cell-date {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+.cell-duration {
   font-size: 14px;
   color: #6b7280;
+  white-space: nowrap;
+}
+
+.cell-type {
+  text-align: right;
+  width: 50px;
 }
 
 /* 睡眠種類バッジ */
@@ -81,24 +96,23 @@
   display: inline-block;
   padding: 2px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  margin-top: 4px;
-  width: fit-content;
+  white-space: nowrap;
 }
 
 .sleep-type-night {
-  background-color: #1e3a8a;
+  background-color: #3b82f6;
   color: #ffffff;
 }
 
 .sleep-type-day {
-  background-color: #ea580c;
+  background-color: #fb923c;
   color: #ffffff;
 }
 
-/* 編集ボタン */
-.btn-edit {
+/* ヘッダーの編集ボタン */
+.btn-edit-header {
   padding: 8px 16px;
   border: 1px solid #2563eb;
   border-radius: 6px;
@@ -108,36 +122,46 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 44px;
   touch-action: manipulation;
 }
 
-.btn-edit:hover {
+.btn-edit-header:hover:not(:disabled) {
   background-color: #eff6ff;
 }
 
-.btn-edit:active {
+.btn-edit-header:active:not(:disabled) {
   background-color: #dbeafe;
+}
+
+.btn-edit-header:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #9ca3af;
+  color: #9ca3af;
 }
 
 /* レスポンシブ調整 */
 @media (max-width: 480px) {
-  .record-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  .btn-edit {
-    width: 100%;
-  }
-  
   .date-header {
-    font-size: 16px;
+    font-size: 15px;
   }
-  
-  .record-time {
+
+  .cell-date {
     font-size: 14px;
+  }
+
+  .cell-duration {
+    font-size: 13px;
+  }
+
+  .cell-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sleep-type-badge {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }
 

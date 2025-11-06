@@ -11,48 +11,54 @@ let editingRecordId = null;
 function renderHistoryList() {
   const historyList = document.getElementById('history-list');
   if (!historyList) return;
-  
+
   const records = getAllRecords();
-  
+
   // 日付順でソート（新しい順）
   const sortedRecords = records.sort((a, b) => {
     return new Date(b.startDateTime) - new Date(a.startDateTime);
   });
-  
+
   if (sortedRecords.length === 0) {
     historyList.innerHTML = '<p class="no-records">記録がありません</p>';
     return;
   }
-  
+
   // 日付ごとにグループ化
   const groupedRecords = groupRecordsByDate(sortedRecords);
-  
+
   let html = '';
   for (const [date, dateRecords] of Object.entries(groupedRecords)) {
     html += `<div class="date-group">
       <h3 class="date-header">${formatDateHeader(date)}</h3>
-      <div class="records-group">`;
-    
+      <table class="records-table">
+        <tbody>`;
+
     dateRecords.forEach(record => {
       const startDate = new Date(record.startDateTime);
       const sleepTypeLabel = record.sleepType === 'night' ? '夜' : '昼';
       const sleepTypeClass = record.sleepType === 'night' ? 'sleep-type-night' : 'sleep-type-day';
-      
+      const day = String(startDate.getDate()).padStart(2, '0');
+      const hours = String(startDate.getHours()).padStart(2, '0');
+      const minutes = String(startDate.getMinutes()).padStart(2, '0');
+
       html += `
-        <div class="record-item" data-id="${record.id}">
-          <div class="record-info">
-            <div class="record-time">${formatDateTime(startDate)}</div>
-            <div class="record-duration">${formatSleepDuration(record.sleepDuration.hours, record.sleepDuration.minutes)}</div>
+        <tr class="record-row">
+          <td class="cell-radio">
+            <input type="radio" name="selected-record" value="${record.id}" id="record-${record.id}" onchange="handleRecordSelection()">
+          </td>
+          <td class="cell-date">${day}日 ${hours}:${minutes}</td>
+          <td class="cell-duration">${formatSleepDuration(record.sleepDuration.hours, record.sleepDuration.minutes)}</td>
+          <td class="cell-type">
             <span class="sleep-type-badge ${sleepTypeClass}">${sleepTypeLabel}</span>
-          </div>
-          <button class="btn-edit" onclick="openEditModal('${record.id}')">編集</button>
-        </div>
+          </td>
+        </tr>
       `;
     });
-    
-    html += `</div></div>`;
+
+    html += `</tbody></table></div>`;
   }
-  
+
   historyList.innerHTML = html;
 }
 
@@ -105,18 +111,45 @@ function formatDateHeader(dateStr) {
 }
 
 /**
+ * ラジオボタン選択時の処理
+ */
+function handleRecordSelection() {
+  const editBtn = document.getElementById('edit-btn');
+  const selectedRadio = document.querySelector('input[name="selected-record"]:checked');
+
+  if (editBtn) {
+    editBtn.disabled = !selectedRadio;
+  }
+}
+
+/**
+ * 選択された記録の編集モーダルを開く
+ */
+function openSelectedEditModal() {
+  const selectedRadio = document.querySelector('input[name="selected-record"]:checked');
+
+  if (!selectedRadio) {
+    alert('編集する記録を選択してください');
+    return;
+  }
+
+  const recordId = selectedRadio.value;
+  openEditModal(recordId);
+}
+
+/**
  * 編集モーダルを開く
  * @param {string} recordId - 編集する記録のID
  */
 function openEditModal(recordId) {
   editingRecordId = recordId;
   const record = getRecordById(recordId);
-  
+
   if (!record) {
     alert('記録が見つかりません');
     return;
   }
-  
+
   const modal = document.getElementById('edit-modal');
   const startDate = new Date(record.startDateTime);
   
@@ -285,22 +318,28 @@ function initHistoryPage() {
       window.location.href = 'index.html';
     });
   }
-  
+
+  // 編集ボタン（ヘッダー）
+  const editBtn = document.getElementById('edit-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', openSelectedEditModal);
+  }
+
   // 編集フォームの初期化
   initEditForm();
-  
+
   // 編集フォームの送信イベント
   const editForm = document.getElementById('edit-form');
   if (editForm) {
     editForm.addEventListener('submit', handleEditSubmit);
   }
-  
+
   // キャンセルボタン
   const cancelBtn = document.getElementById('cancel-btn');
   if (cancelBtn) {
     cancelBtn.addEventListener('click', closeEditModal);
   }
-  
+
   // 記録一覧の表示
   renderHistoryList();
 }
