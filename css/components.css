@@ -5,6 +5,7 @@
 
 /* ボタン */
 .btn-download,
+.btn-history,
 .btn-submit,
 .btn-back,
 .btn-save,
@@ -18,6 +19,10 @@
   transition: all 0.2s;
   min-height: 44px; /* タッチ操作を考慮した最小サイズ */
   touch-action: manipulation;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-download {
@@ -30,6 +35,19 @@
 }
 
 .btn-download:active {
+  background-color: #1e40af;
+}
+
+.btn-history {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-history:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-history:active {
   background-color: #1e40af;
 }
 

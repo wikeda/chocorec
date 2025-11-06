@@ -11,9 +11,9 @@
 <body>
   <header class="header">
     <h1>RecSleep</h1>
-    <button id="download-btn" class="btn-download">CSV出力</button>
+    <a href="history.html" class="btn-history">履歴</a>
   </header>
-  
+
   <main class="main">
     <!-- グラフセクション -->
     <section class="chart-section">
@@ -32,23 +32,6 @@
       <div id="chart-container" class="chart-container">
         <canvas id="sleep-chart"></canvas>
       </div>
-    </section>
-    
-    <!-- 昨日・今日の記録表 -->
-    <section class="recent-records">
-      <h2>今日・昨日の記録</h2>
-      <table id="recent-table" class="records-table">
-        <thead>
-          <tr>
-            <th>入眠日時</th>
-            <th>睡眠時間</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 動的に生成 -->
-        </tbody>
-      </table>
-      <a href="history.html" class="link-history">過去記録一覧</a>
     </section>
     
     <!-- 入力フォーム -->

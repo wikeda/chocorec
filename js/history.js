@@ -319,6 +319,19 @@ function initHistoryPage() {
     });
   }
 
+  // CSVダウンロードボタン
+  const downloadBtn = document.getElementById('download-btn');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      try {
+        exportToCSV();
+      } catch (error) {
+        console.error('Failed to export CSV:', error);
+        alert('CSVのエクスポートに失敗しました');
+      }
+    });
+  }
+
   // 編集ボタン（ヘッダー）
   const editBtn = document.getElementById('edit-btn');
   if (editBtn) {

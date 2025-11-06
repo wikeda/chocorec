@@ -17,6 +17,10 @@ function populateDateOptions(selectElement) {
     option.value = date.toISOString().split('T')[0];
     const dayLabel = i === 0 ? '今日' : i === 1 ? '昨日' : `${i}日前`;
     option.textContent = `${formatDate(date)} (${dayLabel})`;
+    // デフォルトは昨日（i === 1）を選択
+    if (i === 1) {
+      option.selected = true;
+    }
     selectElement.appendChild(option);
   }
 }

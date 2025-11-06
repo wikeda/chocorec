@@ -12,10 +12,7 @@ function initApp() {
   
   // イベントリスナーの設定
   setupEventListeners();
-  
-  // 初期データの表示
-  updateRecentRecordsTable();
-  
+
   // グラフの初期表示（週次をデフォルト）
   if (typeof updateWeekChart === 'function') {
     updateWeekChart();
@@ -41,11 +38,15 @@ function initFormElements() {
   const hourSelect = document.getElementById('hour-select');
   if (hourSelect) {
     populateTimeOptions(hourSelect, 0, 23);
+    // デフォルトは22時
+    hourSelect.value = 22;
   }
-  
+
   const minuteSelect = document.getElementById('minute-select');
   if (minuteSelect) {
     populateTimeOptions(minuteSelect, 0, 55, 5);
+    // デフォルトは0分
+    minuteSelect.value = 0;
   }
   
   // 睡眠時間選択のオプション生成
@@ -69,13 +70,7 @@ function setupEventListeners() {
   if (form) {
     form.addEventListener('submit', handleFormSubmit);
   }
-  
-  // CSVダウンロードボタン
-  const downloadBtn = document.getElementById('download-btn');
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', handleDownloadClick);
-  }
-  
+
   // グラフタブの設定
   setupChartTabs();
   if (typeof setupChartControls === 'function') {
@@ -130,30 +125,17 @@ function handleFormSubmit(event) {
   
   try {
     addRecord(record);
-    
+
     // UI更新
-    updateRecentRecordsTable();
     updateChart(); // グラフも更新
-    
+
     // フォームリセット
     resetForm();
-    
+
     alert('記録を追加しました');
   } catch (error) {
     console.error('Failed to add record:', error);
     alert('記録の追加に失敗しました');
-  }
-}
-
-/**
- * CSVダウンロードボタンのハンドラ
- */
-function handleDownloadClick() {
-  try {
-    exportToCSV();
-  } catch (error) {
-    console.error('Failed to export CSV:', error);
-    alert('CSVのエクスポートに失敗しました');
   }
 }
 
