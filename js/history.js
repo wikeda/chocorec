@@ -308,6 +308,36 @@ function handleEditSubmit(event) {
 }
 
 /**
+ * 記録削除ハンドラ
+ */
+function handleDeleteRecord() {
+  if (!editingRecordId) {
+    alert('削除対象の記録が見つかりません');
+    return;
+  }
+
+  // 確認ダイアログ
+  if (!confirm('この記録を削除してもよろしいですか？')) {
+    return;
+  }
+
+  try {
+    deleteRecord(editingRecordId);
+
+    // UI更新
+    renderHistoryList();
+
+    // モーダルを閉じる
+    closeEditModal();
+
+    alert('記録を削除しました');
+  } catch (error) {
+    console.error('Failed to delete record:', error);
+    alert('記録の削除に失敗しました');
+  }
+}
+
+/**
  * アプリケーションの初期化
  */
 function initHistoryPage() {
@@ -351,6 +381,12 @@ function initHistoryPage() {
   const cancelBtn = document.getElementById('cancel-btn');
   if (cancelBtn) {
     cancelBtn.addEventListener('click', closeEditModal);
+  }
+
+  // 削除ボタン
+  const deleteBtn = document.getElementById('delete-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', handleDeleteRecord);
   }
 
   // 記録一覧の表示
