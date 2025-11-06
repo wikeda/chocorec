@@ -15,11 +15,21 @@
   </header>
   
   <main class="main">
-    <!-- グラフセクション（フェーズ3で実装） -->
+    <!-- グラフセクション -->
     <section class="chart-section">
-      <div class="chart-tabs">
-        <button id="week-tab" class="tab active">週次</button>
-        <button id="month-tab" class="tab">月次</button>
+      <div class="chart-header">
+        <div class="chart-tabs">
+          <button id="week-tab" class="tab active">週次</button>
+          <button id="month-tab" class="tab">月次</button>
+        </div>
+        <div class="chart-controls">
+          <button id="week-prev-btn" class="btn-nav" onclick="moveWeekBackward()">←</button>
+          <span id="week-label" class="period-label">今週</span>
+          <button id="week-next-btn" class="btn-nav" onclick="moveWeekForward()">→</button>
+          <button id="month-prev-btn" class="btn-nav hidden" onclick="moveMonthBackward()">←</button>
+          <span id="month-label" class="period-label hidden">今月</span>
+          <button id="month-next-btn" class="btn-nav hidden" onclick="moveMonthForward()">→</button>
+        </div>
       </div>
       <div id="chart-container" class="chart-container">
         <canvas id="sleep-chart"></canvas>

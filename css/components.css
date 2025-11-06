@@ -139,6 +139,57 @@ select:disabled {
   border-bottom: none;
 }
 
+/* グラフコントロール */
+.chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.period-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 80px;
+  text-align: center;
+}
+
+.btn-nav {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+.btn-nav:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-nav:active {
+  background-color: #f3f4f6;
+}
+
+.hidden {
+  display: none !important;
+}
+
 /* タブ */
 .chart-tabs {
   display: flex;

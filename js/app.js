@@ -20,6 +20,8 @@ function initApp() {
   if (typeof updateWeekChart === 'function') {
     updateWeekChart();
   }
+  
+  // グラフコントロールの表示切り替え（chart.jsで設定）
 }
 
 /**
@@ -73,6 +75,9 @@ function setupEventListeners() {
   
   // グラフタブの設定
   setupChartTabs();
+  if (typeof setupChartControls === 'function') {
+    setupChartControls();
+  }
 }
 
 /**
@@ -149,6 +154,4 @@ function handleDownloadClick() {
   }
 }
 
-// DOMContentLoaded時にアプリを初期化
-document.addEventListener('DOMContentLoaded', initApp);
 
