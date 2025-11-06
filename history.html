@@ -27,26 +27,38 @@
       <div class="modal-content">
         <h2>記録を編集</h2>
         <form id="edit-form">
-          <div class="form-row">
-            <select id="edit-date-select" name="date" required>
-              <!-- 過去7日を動的に生成 -->
-            </select>
-            <select id="edit-hour-select" name="hour" required>
-              <!-- 00-23を動的に生成 -->
-            </select>
-            <span class="separator">:</span>
-            <select id="edit-minute-select" name="minute" required>
-              <!-- 00-55を5分刻みで生成 -->
-            </select>
-            <span class="separator">〜</span>
-            <select id="edit-duration-hour-select" name="durationHour" required>
-              <!-- 00-23を動的に生成 -->
-            </select>
-            <span class="separator">:</span>
-            <select id="edit-duration-minute-select" name="durationMinute" required>
-              <!-- 00-55を5分刻みで生成 -->
-            </select>
+          <!-- 睡眠開始日時グループ -->
+          <div class="form-group">
+            <label class="form-label">睡眠開始日時</label>
+            <div class="form-group-row">
+              <select id="edit-date-select" name="date" class="form-select" required>
+                <!-- 過去7日を動的に生成 -->
+              </select>
+              <select id="edit-hour-select" name="hour" class="form-select form-select-time" required>
+                <!-- 00-23を動的に生成 -->
+              </select>
+              <span class="separator">:</span>
+              <select id="edit-minute-select" name="minute" class="form-select form-select-time" required>
+                <!-- 00-55を5分刻みで生成 -->
+              </select>
+            </div>
           </div>
+          
+          <!-- 睡眠時間グループ -->
+          <div class="form-group">
+            <label class="form-label">睡眠時間</label>
+            <div class="form-group-row">
+              <select id="edit-duration-hour-select" name="durationHour" class="form-select form-select-time" required>
+                <!-- 00-23を動的に生成 -->
+              </select>
+              <span class="form-unit">時間</span>
+              <select id="edit-duration-minute-select" name="durationMinute" class="form-select form-select-time" required>
+                <!-- 00-55を5分刻みで生成 -->
+              </select>
+              <span class="form-unit">分</span>
+            </div>
+          </div>
+          
           <div class="modal-actions">
             <button type="button" id="cancel-btn" class="btn-cancel">キャンセル</button>
             <button type="submit" class="btn-save">保存</button>
