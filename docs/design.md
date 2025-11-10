@@ -623,3 +623,5 @@ function loadFromStorage() {
 **バージョン**：1.0
 **状態**：設計完了
 
+
+

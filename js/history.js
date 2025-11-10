@@ -392,3 +392,5 @@ function initHistoryPage() {
 // DOMContentLoaded時に初期化
 document.addEventListener('DOMContentLoaded', initHistoryPage);
 
+
+
