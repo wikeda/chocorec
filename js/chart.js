@@ -211,6 +211,9 @@ function updateWeekChart() {
 
   createChart(canvas, aggregatedData, 'week');
 
+  // 総回数を計算して表示
+  updateTotalCount(aggregatedData);
+
   // 週の表示ラベルを更新
   updateWeekLabel();
   updateNavButtons();
@@ -249,6 +252,9 @@ function updateMonthChart() {
 
   createChart(canvas, aggregatedData, 'month');
 
+  // 総回数を計算して表示
+  updateTotalCount(aggregatedData);
+
   // 月の表示ラベルを更新
   updateMonthLabel();
   updateNavButtons();
@@ -266,6 +272,22 @@ function updateChart() {
   } else if (monthTab && monthTab.classList.contains('active')) {
     updateMonthChart();
   }
+}
+
+/**
+ * 総回数を計算して表示する
+ * @param {Array} aggregatedData - 集計済みデータ
+ */
+function updateTotalCount(aggregatedData) {
+  const totalCountElement = document.getElementById('total-count-value');
+  if (!totalCountElement) return;
+
+  // 全日のtotalを合計
+  const totalCount = aggregatedData.reduce((sum, dayData) => {
+    return sum + (dayData.total || 0);
+  }, 0);
+
+  totalCountElement.textContent = totalCount.toLocaleString();
 }
 
 /**

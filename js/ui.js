@@ -80,6 +80,25 @@ function initExerciseSelect() {
 }
 
 /**
+ * 回数プルダウンを初期化
+ */
+function initCountSelect() {
+  const countSelect = document.getElementById('count');
+  if (!countSelect) return;
+
+  countSelect.innerHTML = '';
+
+  // 1～50回まで選択肢を生成
+  for (let i = 1; i <= 50; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = i;
+    if (i === 10) option.selected = true; // デフォルトは10回
+    countSelect.appendChild(option);
+  }
+}
+
+/**
  * セット数プルダウンを初期化
  */
 function initSetsSelect() {

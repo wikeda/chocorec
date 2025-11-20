@@ -14,6 +14,9 @@ function initApp() {
   if (typeof initExerciseSelect === 'function') {
     initExerciseSelect();
   }
+  if (typeof initCountSelect === 'function') {
+    initCountSelect();
+  }
   if (typeof initSetsSelect === 'function') {
     initSetsSelect();
   }
@@ -64,7 +67,7 @@ function handleFormSubmit(event) {
   const date = formData.get('date');
   const exercise = formData.get('exercise');
   const count = parseInt(formData.get('count'), 10);
-  const sets = parseInt(document.getElementById('sets').value, 10);
+  const sets = parseInt(formData.get('sets'), 10);
 
   if (!date || !exercise || isNaN(count) || count <= 0 || isNaN(sets) || sets <= 0) {
     alert('正しい値を入力してください。');

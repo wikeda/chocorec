@@ -172,11 +172,25 @@ select:disabled {
   flex: 1;
 }
 
-/* 日付セレクトは幅を広く */
-#date-select.form-select,
+/* 日付と種目のセレクトボックス */
+#date-select.form-select {
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 160px;
+}
+
+#exercise-select.form-select,
 #edit-date-select.form-select {
   flex: 1 1 auto;
   min-width: 140px;
+}
+
+/* 回数とセット数のセレクトボックス */
+#count.form-select,
+#sets.form-select {
+  flex: 1 1 auto;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 .form-select-time {
@@ -250,6 +264,32 @@ select:disabled {
   gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+/* 総回数表示 */
+.total-count-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.total-count-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.total-count-value {
+  font-size: 24px;
+  color: #1f2937;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+.total-count-unit {
+  font-size: 14px;
+  color: #6b7280;
 }
 
 .chart-tabs {

@@ -26,6 +26,11 @@
           <button id="month-prev-btn" class="btn-nav hidden" onclick="moveMonthBackward()">←</button>
           <span id="month-label" class="period-label hidden">今月</span>
         </div>
+        <div class="total-count-display">
+          <span class="total-count-label">総回数</span>
+          <span id="total-count-value" class="total-count-value">0</span>
+          <span class="total-count-unit">回</span>
+        </div>
         <div class="chart-tabs">
           <button id="week-tab" class="tab active">週次</button>
           <button id="month-tab" class="tab">月次</button>
@@ -39,42 +44,32 @@
     <!-- 入力フォーム -->
     <section class="input-form">
       <form id="training-form">
-        <!-- 日付選択 -->
+        <!-- 日付・種目選択 -->
         <div class="form-group">
-          <label class="form-label">日付</label>
+          <label class="form-label">日付・種目</label>
           <div class="form-group-row">
             <select id="date-select" name="date" class="form-select" required>
               <!-- 過去7日を動的に生成 -->
             </select>
-          </div>
-        </div>
-
-        <!-- 種目選択 -->
-        <div class="form-group">
-          <label class="form-label">種目</label>
-          <div class="form-group-row">
             <select id="exercise-select" name="exercise" class="form-select" required>
               <!-- constants.jsから動的に生成 -->
             </select>
           </div>
         </div>
 
-        <!-- 回数入力 -->
+        <!-- 回数とセット数 -->
         <div class="form-group">
-          <label for="count">回数</label>
-          <div class="input-group">
-            <input type="number" id="count" required min="1" placeholder="10">
-            <span class="unit">回</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="sets">セット数</label>
-          <div class="input-group">
-            <select id="sets" required>
+          <label class="form-label">回数・セット数</label>
+          <div class="form-group-row">
+            <select id="count" name="count" class="form-select" required>
               <!-- JavaScriptで生成 -->
             </select>
-            <span class="unit">セット</span>
+            <span class="form-unit">回</span>
+            <span class="separator">×</span>
+            <select id="sets" name="sets" class="form-select" required>
+              <!-- JavaScriptで生成 -->
+            </select>
+            <span class="form-unit">セット</span>
           </div>
         </div>
 
