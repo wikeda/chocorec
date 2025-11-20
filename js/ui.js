@@ -151,36 +151,42 @@ function updateCountInput() {
   const exercise = exerciseSelect.value;
   const lastData = getLastCount(exercise);
 
-  if (lastData) {
-    // lastDataがオブジェクトか数値かで分岐
-    if (typeof lastData === 'object' && lastData !== null) {
-      countInput.value = lastData.count;
-      if (lastData.sets) {
-        setsSelect.value = lastData.sets;
-      } else {
-        setsSelect.value = 3; // デフォルト
-      }
-      // 重さも自動入力
-      if (weightSelect) {
-        if (lastData.weight !== null && lastData.weight !== undefined) {
-          weightSelect.value = lastData.weight;
-        } else {
-          weightSelect.value = 20; // デフォルト20kg
-        }
-      }
-    } else {
-      // 古いデータ互換
-      countInput.value = lastData;
-      setsSelect.value = 3; // デフォルト
-      if (weightSelect) {
-        weightSelect.value = 20; // デフォルト20kg
-      }
+  // デフォルト値（セレクトが存在する前提）
+  const defaultCount = (countInput && countInput.options && countInput.options[9]) ? countInput.options[9].value : '';
+  const defaultSets = (setsSelect && setsSelect.options && setsSelect.options[2]) ? setsSelect.options[2].value : 3;
+  const defaultWeight = (weightSelect && weightSelect.options && weightSelect.options.length > 0)
+    ? (weightSelect.options[4]?.value || 20) // インデックス4が20kg
+    : 20;
+
+  let resolved = null;
+
+  if (typeof lastData === 'object' && lastData !== null) {
+    resolved = {
+      count: lastData.count ?? defaultCount,
+      sets: lastData.sets ?? defaultSets,
+      weight: (lastData.weight !== null && lastData.weight !== undefined) ? lastData.weight : ''
+    };
+  } else if (typeof lastData === 'number') {
+    // 古いデータ互換
+    resolved = {
+      count: lastData,
+      sets: defaultSets,
+      weight: defaultWeight
+    };
+  }
+
+  if (resolved) {
+    countInput.value = resolved.count;
+    setsSelect.value = resolved.sets;
+    if (weightSelect) {
+      weightSelect.value = resolved.weight;
     }
   } else {
-    countInput.value = '';
-    setsSelect.value = 3; // デフォルト
+    // 過去記録が無い場合はデフォルト
+    countInput.value = defaultCount;
+    setsSelect.value = defaultSets;
     if (weightSelect) {
-      weightSelect.value = 20; // デフォルト20kg
+      weightSelect.value = defaultWeight;
     }
   }
 }

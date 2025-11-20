@@ -175,6 +175,18 @@ function openEditModal(recordId) {
   }
 
   if (exerciseSelect) {
+    // セレクトが空の場合や初期化漏れに備えて再生成
+    if (exerciseSelect.options.length === 0) {
+      initEditForm(); // 種目選択を再初期化
+    }
+    // セレクトに対象の種目が存在しない場合は追加する
+    const hasExercise = Array.from(exerciseSelect.options).some(option => option.value === record.exercise);
+    if (!hasExercise) {
+      const option = document.createElement('option');
+      option.value = record.exercise;
+      option.textContent = `${record.exercise} (記録の種目)`;
+      exerciseSelect.appendChild(option);
+    }
     exerciseSelect.value = record.exercise;
   }
 
@@ -253,7 +265,17 @@ function initEditForm() {
   // 種目選択のオプション生成
   const exerciseSelect = document.getElementById('edit-exercise-select');
   if (exerciseSelect) {
-    EXERCISES.forEach(exercise => {
+    // EXERCISESが未初期化の場合はここで初期化する
+    if ((!EXERCISES || EXERCISES.length === 0) && typeof initializeExerciseConstants === 'function') {
+      initializeExerciseConstants();
+    }
+
+    exerciseSelect.innerHTML = '';
+    const exerciseList = (EXERCISES && EXERCISES.length > 0)
+      ? EXERCISES
+      : (typeof getExerciseNames === 'function' ? getExerciseNames() : []);
+
+    exerciseList.forEach(exercise => {
       const option = document.createElement('option');
       option.value = exercise;
       option.textContent = exercise;
@@ -433,12 +455,8 @@ function initHistoryPage() {
   }
 }
 
-// DOMContentLoaded時に初期化
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initHistoryPage);
-} else {
-  initHistoryPage();
-}
+// DOMContentLoaded時に初期化（EXERCISES初期化を確実に待つ）
+document.addEventListener('DOMContentLoaded', initHistoryPage);
 
 
 
