@@ -101,19 +101,32 @@ function createChart(canvas, data, periodType) {
     ? getAllExercises().map(ex => ex.name)
     : EXERCISES;
 
+  // データ内に実際に値がある種目を抽出
+  const exercisesWithData = new Set();
+  data.forEach(dayData => {
+    Object.keys(dayData).forEach(key => {
+      if (key !== 'date' && key !== 'total' && dayData[key] > 0) {
+        exercisesWithData.add(key);
+      }
+    });
+  });
+
   // 色マップを取得
   const colorMap = typeof getExerciseColorMap === 'function'
     ? getExerciseColorMap()
     : EXERCISE_COLORS;
 
-  const datasets = allExercises.map(exercise => {
-    return {
-      label: exercise,
-      data: data.map(d => d[exercise] || 0),
-      backgroundColor: colorMap[exercise] || '#cbd5e1',
-      stack: 'training'
-    };
-  });
+  // データがある種目のみをデータセットに含める
+  const datasets = allExercises
+    .filter(exercise => exercisesWithData.has(exercise))
+    .map(exercise => {
+      return {
+        label: exercise,
+        data: data.map(d => d[exercise] || 0),
+        backgroundColor: colorMap[exercise] || '#cbd5e1',
+        stack: 'training'
+      };
+    });
 
   const chartData = {
     labels: data.map(d => formatDisplayDate(d.date)),
