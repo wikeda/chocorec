@@ -16,7 +16,11 @@ function renderHistoryList() {
 
   // 日付順でソート（新しい順）
   const sortedRecords = records.sort((a, b) => {
-    return new Date(b.startDateTime) - new Date(a.startDateTime);
+    // 日付文字列比較 (YYYY-MM-DD)
+    if (a.date > b.date) return -1;
+    if (a.date < b.date) return 1;
+    // 同じ日付なら作成日時順
+    return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
   if (sortedRecords.length === 0) {
@@ -35,23 +39,18 @@ function renderHistoryList() {
         <tbody>`;
 
     dateRecords.forEach(record => {
-      const startDate = new Date(record.startDateTime);
-      const sleepTypeLabel = record.sleepType === 'night' ? '夜' : '昼';
-      const sleepTypeClass = record.sleepType === 'night' ? 'sleep-type-night' : 'sleep-type-day';
-      const day = String(startDate.getDate()).padStart(2, '0');
-      const hours = String(startDate.getHours()).padStart(2, '0');
-      const minutes = String(startDate.getMinutes()).padStart(2, '0');
+      // 種目ごとの色を取得
+      const color = EXERCISE_COLORS[record.exercise] || '#666';
+      // セット数の表示（デフォルト3セット）
+      const sets = record.sets || 3;
 
       html += `
         <tr class="record-row">
           <td class="cell-radio">
             <input type="radio" name="selected-record" value="${record.id}" id="record-${record.id}" onchange="handleRecordSelection()">
           </td>
-          <td class="cell-date">${day}日 ${hours}:${minutes}</td>
-          <td class="cell-duration">${formatSleepDuration(record.sleepDuration.hours, record.sleepDuration.minutes)}</td>
-          <td class="cell-type">
-            <span class="sleep-type-badge ${sleepTypeClass}">${sleepTypeLabel}</span>
-          </td>
+          <td class="cell-exercise" style="color: ${color}; font-weight: bold;">${record.exercise}</td>
+          <td class="cell-count">${record.count} 回 x ${sets} セット</td>
         </tr>
       `;
     });
@@ -69,17 +68,16 @@ function renderHistoryList() {
  */
 function groupRecordsByDate(records) {
   const grouped = {};
-  
+
   records.forEach(record => {
-    const date = new Date(record.startDateTime);
-    const dateKey = formatDate(date);
-    
+    const dateKey = record.date;
+
     if (!grouped[dateKey]) {
       grouped[dateKey] = [];
     }
     grouped[dateKey].push(record);
   });
-  
+
   return grouped;
 }
 
@@ -94,10 +92,10 @@ function formatDateHeader(dateStr) {
   today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0);
-  
+
   if (targetDate.getTime() === today.getTime()) {
     return '今日';
   } else if (targetDate.getTime() === yesterday.getTime()) {
@@ -151,19 +149,17 @@ function openEditModal(recordId) {
   }
 
   const modal = document.getElementById('edit-modal');
-  const startDate = new Date(record.startDateTime);
-  
+
   // フォームに値を設定
   const dateSelect = document.getElementById('edit-date-select');
-  const hourSelect = document.getElementById('edit-hour-select');
-  const minuteSelect = document.getElementById('edit-minute-select');
-  const durationHourSelect = document.getElementById('edit-duration-hour-select');
-  const durationMinuteSelect = document.getElementById('edit-duration-minute-select');
-  
+  const exerciseSelect = document.getElementById('edit-exercise-select');
+  const countInput = document.getElementById('edit-count-input');
+  const setsSelect = document.getElementById('edit-sets-select');
+
   if (dateSelect) {
     // 日付選択のオプションを再生成（過去7日）
     populateDateOptions(dateSelect);
-    const dateStr = formatDate(startDate);
+    const dateStr = record.date;
     // 該当する日付が選択肢にない場合は追加して選択
     const hasExistingOption = Array.from(dateSelect.options).some(option => option.value === dateStr);
     if (!hasExistingOption) {
@@ -174,26 +170,50 @@ function openEditModal(recordId) {
     }
     dateSelect.value = dateStr;
   }
-  
-  if (hourSelect) {
-    hourSelect.value = startDate.getHours();
+
+  if (exerciseSelect) {
+    exerciseSelect.value = record.exercise;
   }
-  
-  if (minuteSelect) {
-    // 5分単位に丸める
-    const minutes = Math.round(startDate.getMinutes() / 5) * 5;
-    minuteSelect.value = minutes;
+
+  if (countInput) {
+    countInput.value = record.count;
   }
-  
-  if (durationHourSelect) {
-    durationHourSelect.value = record.sleepDuration.hours;
+
+  if (setsSelect) {
+    setsSelect.value = record.sets || 3;
   }
-  
-  if (durationMinuteSelect) {
-    durationMinuteSelect.value = record.sleepDuration.minutes;
-  }
-  
+
   modal.classList.remove('hidden');
+}
+
+/**
+ * 過去7日の日付オプションを生成する（ui.jsからコピーまたは共通化すべきだが、簡易的にここに実装）
+ */
+function populateDateOptions(selectElement) {
+  selectElement.innerHTML = '';
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    const option = document.createElement('option');
+    option.value = dateStr;
+
+    let label = `${month}/${day}`;
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+    label += ` (${dayOfWeek})`;
+
+    if (i === 0) label += ' - 今日';
+    else if (i === 1) label += ' - 昨日';
+
+    option.textContent = label;
+    selectElement.appendChild(option);
+  }
 }
 
 /**
@@ -214,27 +234,28 @@ function initEditForm() {
   if (dateSelect) {
     populateDateOptions(dateSelect);
   }
-  
-  // 時刻選択のオプション生成
-  const hourSelect = document.getElementById('edit-hour-select');
-  if (hourSelect) {
-    populateTimeOptions(hourSelect, 0, 23);
+
+  // 種目選択のオプション生成
+  const exerciseSelect = document.getElementById('edit-exercise-select');
+  if (exerciseSelect) {
+    EXERCISES.forEach(exercise => {
+      const option = document.createElement('option');
+      option.value = exercise;
+      option.textContent = exercise;
+      exerciseSelect.appendChild(option);
+    });
   }
-  
-  const minuteSelect = document.getElementById('edit-minute-select');
-  if (minuteSelect) {
-    populateTimeOptions(minuteSelect, 0, 55, 5);
-  }
-  
-  // 睡眠時間選択のオプション生成
-  const durationHourSelect = document.getElementById('edit-duration-hour-select');
-  if (durationHourSelect) {
-    populateTimeOptions(durationHourSelect, 0, 23);
-  }
-  
-  const durationMinuteSelect = document.getElementById('edit-duration-minute-select');
-  if (durationMinuteSelect) {
-    populateTimeOptions(durationMinuteSelect, 0, 55, 5);
+
+  // セット数選択のオプション生成
+  const setsSelect = document.getElementById('edit-sets-select');
+  if (setsSelect) {
+    setsSelect.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = i;
+      setsSelect.appendChild(option);
+    }
   }
 }
 
@@ -243,64 +264,46 @@ function initEditForm() {
  */
 function handleEditSubmit(event) {
   event.preventDefault();
-  
+
   if (!editingRecordId) {
     alert('編集対象の記録が見つかりません');
     return;
   }
-  
-  const formData = {
-    date: document.getElementById('edit-date-select').value,
-    hour: parseInt(document.getElementById('edit-hour-select').value),
-    minute: parseInt(document.getElementById('edit-minute-select').value),
-    durationHour: parseInt(document.getElementById('edit-duration-hour-select').value),
-    durationMinute: parseInt(document.getElementById('edit-duration-minute-select').value)
-  };
-  
-  // バリデーション
-  const validation = validateSleepRecord(formData);
-  if (!validation.isValid) {
-    alert(validation.errors.join('\n'));
+
+  const formData = new FormData(event.target);
+  const date = formData.get('date');
+  const exercise = formData.get('exercise');
+  const count = parseInt(formData.get('count'), 10);
+  const sets = parseInt(formData.get('sets'), 10);
+
+  if (!date || !exercise || isNaN(count) || count <= 0 || isNaN(sets) || sets <= 0) {
+    alert('正しい値を入力してください');
     return;
   }
-  
-  // 日時文字列の構築
-  const [year, month, day] = formData.date.split('-');
-  const startDateTime = new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    formData.hour,
-    formData.minute
-  );
-  
-  // 睡眠種類の判定
-  const sleepType = determineSleepType(startDateTime);
-  
+
   // レコード更新
   const updates = {
-    startDateTime: startDateTime.toISOString(),
-    sleepDuration: {
-      hours: formData.durationHour,
-      minutes: formData.durationMinute
-    },
-    sleepType: sleepType
+    date: date,
+    exercise: exercise,
+    count: count,
+    sets: sets
   };
-  
+
   try {
     updateRecord(editingRecordId, updates);
-    
+
     // UI更新
     renderHistoryList();
-    
+
     // モーダルを閉じる
     closeEditModal();
-    
+
     alert('記録を更新しました');
   } catch (error) {
     console.error('Failed to update record:', error);
     alert('記録の更新に失敗しました');
   }
+
 }
 
 /**
@@ -340,7 +343,7 @@ function initHistoryPage() {
   // 戻るボタン
   const backBtn = document.getElementById('back-btn');
   if (backBtn) {
-    backBtn.addEventListener('click', function() {
+    backBtn.addEventListener('click', function () {
       window.location.href = 'index.html';
     });
   }
@@ -348,7 +351,7 @@ function initHistoryPage() {
   // CSVダウンロードボタン
   const downloadBtn = document.getElementById('download-btn');
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', function() {
+    downloadBtn.addEventListener('click', function () {
       try {
         exportToCSV();
       } catch (error) {
@@ -365,7 +368,11 @@ function initHistoryPage() {
   }
 
   // 編集フォームの初期化
-  initEditForm();
+  try {
+    initEditForm();
+  } catch (error) {
+    console.error('Failed to init edit form:', error);
+  }
 
   // 編集フォームの送信イベント
   const editForm = document.getElementById('edit-form');
@@ -386,11 +393,20 @@ function initHistoryPage() {
   }
 
   // 記録一覧の表示
-  renderHistoryList();
+  try {
+    renderHistoryList();
+  } catch (error) {
+    console.error('Failed to render history list:', error);
+  }
 }
 
 // DOMContentLoaded時に初期化
-document.addEventListener('DOMContentLoaded', initHistoryPage);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHistoryPage);
+} else {
+  initHistoryPage();
+}
+
 
 
 

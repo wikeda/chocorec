@@ -1,73 +1,65 @@
 /**
  * グラフ描画ロジック
- * Chart.jsを使用して睡眠記録の積層グラフを表示する
+ * Chart.jsを使用してトレーニング記録の積層グラフを表示する
  */
 
-let sleepChart = null;
+let trainingChart = null;
 let currentWeekOffset = 0; // 週のオフセット（0=今週、-1=先週、1=来週）
 let currentMonthOffset = 0; // 月のオフセット（0=今月、-1=先月、1=来月）
 
 /**
- * 日別の睡眠データを集計する
- * @param {Array} records - 睡眠記録の配列
+ * 日別のトレーニングデータを集計する
+ * @param {Array} records - トレーニング記録の配列
  * @param {Date} startDate - 開始日
  * @param {number} days - 集計日数
  * @returns {Array} 集計されたデータ配列
  */
-function aggregateDailySleep(records, startDate, days) {
+function aggregateDailyTraining(records, startDate, days) {
   const aggregated = {};
 
   // 日付ごとの初期化
   for (let i = 0; i < days; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
-    const dateKey = formatDate(date);
+    const dateKey = formatDate(date); // YYYY-MM-DD
+
     aggregated[dateKey] = {
       date: dateKey,
-      night: 0,  // 分単位
-      day: 0     // 分単位
+      total: 0
     };
+
+    // 各種目の初期化
+    EXERCISES.forEach(ex => {
+      aggregated[dateKey][ex] = 0;
+    });
   }
 
-  // レコードを集計（日付をまたぐ睡眠時間を分割）
+  // レコードを集計
   records.forEach(record => {
-    const sleepStart = new Date(record.startDateTime);
-    const totalMinutes = record.sleepDuration.hours * 60 + record.sleepDuration.minutes;
-    const sleepEnd = new Date(sleepStart.getTime() + totalMinutes * 60 * 1000);
-
-    // 睡眠開始日から終了日まで、日ごとに分割して集計
-    let currentDate = new Date(sleepStart);
-    currentDate.setHours(0, 0, 0, 0);
-
-    while (currentDate < sleepEnd) {
-      const dateKey = formatDate(currentDate);
-
-      if (aggregated[dateKey]) {
-        // この日の開始時刻と終了時刻を計算
-        const dayStart = new Date(currentDate);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(currentDate);
-        dayEnd.setHours(23, 59, 59, 999);
-
-        // この日における実際の睡眠開始・終了時刻
-        const actualStart = sleepStart > dayStart ? sleepStart : dayStart;
-        const actualEnd = sleepEnd < dayEnd ? sleepEnd : dayEnd;
-
-        // この日の睡眠時間（分）
-        const minutesThisDay = Math.round((actualEnd - actualStart) / (60 * 1000));
-
-        if (minutesThisDay > 0) {
-          // 睡眠の種類を判定（開始時刻で判定）
-          aggregated[dateKey][record.sleepType] += minutesThisDay;
-        }
+    const dateKey = record.date;
+    if (aggregated[dateKey]) {
+      if (aggregated[dateKey][record.exercise] !== undefined) {
+        const sets = record.sets || 3; // デフォルト3セット
+        const load = record.count * sets;
+        aggregated[dateKey][record.exercise] += load;
+        aggregated[dateKey].total += load;
       }
-
-      // 次の日へ
-      currentDate.setDate(currentDate.getDate() + 1);
     }
   });
 
   return Object.values(aggregated);
+}
+
+/**
+ * 日付をフォーマットする（YYYY-MM-DD）
+ * ui.jsにもあるが、依存関係を避けるためここでも定義（あるいはui.jsのを使う）
+ * ここでは独立して定義しておく
+ */
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -94,39 +86,48 @@ function createChart(canvas, data, periodType) {
     console.error('Chart.js is not loaded');
     return;
   }
-  
+
+  // データセットの作成
+  const datasets = EXERCISES.map(exercise => {
+    return {
+      label: exercise,
+      data: data.map(d => d[exercise]),
+      backgroundColor: EXERCISE_COLORS[exercise] || '#cbd5e1',
+      stack: 'training'
+    };
+  });
+
   const chartData = {
     labels: data.map(d => formatDisplayDate(d.date)),
-    datasets: [
-      {
-        label: '夜の睡眠',
-        data: data.map(d => d.night / 60), // 時間に変換
-        backgroundColor: '#3b82f6', // 明るい青
-        stack: 'sleep'
-      },
-      {
-        label: '昼の睡眠',
-        data: data.map(d => d.day / 60), // 時間に変換
-        backgroundColor: '#fb923c', // 明るいオレンジ
-        stack: 'sleep'
-      }
-    ]
+    datasets: datasets
   };
-  
+
   const config = {
     type: 'bar',
     data: chartData,
     options: {
+      indexAxis: 'y', // 横棒グラフにする
       responsive: true,
       maintainAspectRatio: false,
       scales: {
         x: {
           stacked: true,
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: '総負荷 (回数 × セット数)'
+          },
+          ticks: {
+            stepSize: 10
+          }
+        },
+        y: {
+          stacked: true,
           grid: {
             display: false
           },
           ticks: {
-            color: function(context) {
+            color: function (context) {
               // ラベルのインデックスから元の日付データを取得
               const index = context.index;
               if (index >= 0 && index < data.length) {
@@ -143,18 +144,6 @@ function createChart(canvas, data, periodType) {
               return '#666666'; // 平日: グレー
             }
           }
-        },
-        y: {
-          stacked: true,
-          beginAtZero: true,
-          max: 24, // 24時間固定
-          title: {
-            display: true,
-            text: '睡眠時間（時間）'
-          },
-          ticks: {
-            stepSize: 2
-          }
         }
       },
       plugins: {
@@ -162,29 +151,30 @@ function createChart(canvas, data, periodType) {
           position: 'top',
           labels: {
             usePointStyle: true,
-            padding: 15
+            padding: 15,
+            boxWidth: 8
           }
         },
         tooltip: {
           callbacks: {
-            label: function(context) {
-              const hours = Math.floor(context.raw);
-              const minutes = Math.round((context.raw - hours) * 60);
-              return `${context.dataset.label}: ${hours}時間${minutes}分`;
+            label: function (context) {
+              const value = context.raw;
+              if (value === 0) return ''; // 0の場合は表示しない
+              return `${context.dataset.label}: ${value}`;
             }
           }
         }
       }
     }
   };
-  
+
   // 既存のグラフを破棄
-  if (sleepChart) {
-    sleepChart.destroy();
+  if (trainingChart) {
+    trainingChart.destroy();
   }
-  
+
   try {
-    sleepChart = new Chart(canvas, config);
+    trainingChart = new Chart(canvas, config);
   } catch (error) {
     console.error('Failed to create chart:', error);
   }
@@ -194,19 +184,33 @@ function createChart(canvas, data, periodType) {
  * 週次グラフを更新する
  */
 function updateWeekChart() {
-  const canvas = document.getElementById('sleep-chart');
+  const canvas = document.getElementById('training-chart');
   if (!canvas) return;
-  
+
   const records = getAllRecords();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const weekStart = new Date(today);
-  // オフセットに応じて週を移動
-  weekStart.setDate(weekStart.getDate() - 6 + (currentWeekOffset * 7)); // 過去7日間
-  
-  const aggregatedData = aggregateDailySleep(records, weekStart, 7);
+
+  // 今週の月曜日を計算 (0=日, 1=月...6=土)
+  // 日曜(0)の場合は-6して前の月曜にする、それ以外は1引いて調整
+  const dayOfWeek = today.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const currentWeekMonday = new Date(today);
+  currentWeekMonday.setDate(today.getDate() + diffToMonday);
+
+  // オフセット適用
+  const targetMonday = new Date(currentWeekMonday);
+  targetMonday.setDate(targetMonday.getDate() + (currentWeekOffset * 7));
+
+  const aggregatedData = aggregateDailyTraining(records, targetMonday, 7);
+
+  // 週次グラフは高さ固定（スクロールなし）
+  const chartContainer = canvas.parentElement;
+  chartContainer.style.height = '400px'; // デフォルトの高さ
+
   createChart(canvas, aggregatedData, 'week');
-  
+
   // 週の表示ラベルを更新
   updateWeekLabel();
   updateNavButtons();
@@ -216,19 +220,35 @@ function updateWeekChart() {
  * 月次グラフを更新する
  */
 function updateMonthChart() {
-  const canvas = document.getElementById('sleep-chart');
+  const canvas = document.getElementById('training-chart');
   if (!canvas) return;
-  
+
   const records = getAllRecords();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const monthStart = new Date(today);
-  // オフセットに応じて月を移動
-  monthStart.setDate(monthStart.getDate() - 29 + (currentMonthOffset * 30)); // 過去30日間
-  
-  const aggregatedData = aggregateDailySleep(records, monthStart, 30);
+
+  // 今月の1日を計算
+  const currentMonthFirstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // オフセット適用
+  const targetMonthFirstDay = new Date(currentMonthFirstDay);
+  targetMonthFirstDay.setMonth(targetMonthFirstDay.getMonth() + currentMonthOffset);
+
+  // 月の日数を取得
+  const year = targetMonthFirstDay.getFullYear();
+  const month = targetMonthFirstDay.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const aggregatedData = aggregateDailyTraining(records, targetMonthFirstDay, daysInMonth);
+
+  // 月次グラフは日数に応じて高さを調整（スクロール対応）
+  // 1日あたり30px + マージン等
+  const chartHeight = Math.max(400, daysInMonth * 30);
+  const chartContainer = canvas.parentElement;
+  chartContainer.style.height = `${chartHeight}px`;
+
   createChart(canvas, aggregatedData, 'month');
-  
+
   // 月の表示ラベルを更新
   updateMonthLabel();
   updateNavButtons();
@@ -240,7 +260,7 @@ function updateMonthChart() {
 function updateChart() {
   const weekTab = document.getElementById('week-tab');
   const monthTab = document.getElementById('month-tab');
-  
+
   if (weekTab && weekTab.classList.contains('active')) {
     updateWeekChart();
   } else if (monthTab && monthTab.classList.contains('active')) {
@@ -256,9 +276,7 @@ function updateWeekLabel() {
   today.setHours(0, 0, 0, 0);
   const weekStart = new Date(today);
   weekStart.setDate(weekStart.getDate() - 6 + (currentWeekOffset * 7));
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  
+
   const label = getWeekLabel(currentWeekOffset);
   const weekLabel = document.getElementById('week-label');
   if (weekLabel) {
@@ -292,7 +310,6 @@ function getWeekLabel(offset) {
   } else if (offset < 0) {
     return `${Math.abs(offset)}週間前`;
   } else {
-    // 未来への移動は無効化されているので、通常は表示されない
     return '今週';
   }
 }
@@ -312,7 +329,6 @@ function getMonthLabel(offset) {
   } else if (offset < 0) {
     return `${Math.abs(offset)}ヶ月前`;
   } else {
-    // 未来への移動は無効化されているので、通常は表示されない
     return '今月';
   }
 }
@@ -324,7 +340,7 @@ function moveWeekBackward() {
   currentWeekOffset--;
   updateWeekChart();
   updateNavButtons();
-  // コントロールの表示を維持（週次コントロールを表示）
+  // コントロールの表示を維持
   const weekControls = document.querySelectorAll('#week-prev-btn, #week-label');
   const monthControls = document.querySelectorAll('#month-prev-btn, #month-label');
   weekControls.forEach(ctrl => ctrl.classList.remove('hidden'));
@@ -332,20 +348,10 @@ function moveWeekBackward() {
 }
 
 /**
- * 週を後に移動する（無効化：未来の睡眠は記録しない）
+ * 週を後に移動する（無効化）
  */
 function moveWeekForward() {
-  // 未来への移動は無効化
   return;
-}
-
-/**
- * 週をリセットする（今週に戻す）
- */
-function resetWeek() {
-  currentWeekOffset = 0;
-  updateWeekChart();
-  updateNavButtons();
 }
 
 /**
@@ -355,7 +361,7 @@ function moveMonthBackward() {
   currentMonthOffset--;
   updateMonthChart();
   updateNavButtons();
-  // コントロールの表示を維持（月次コントロールを表示）
+  // コントロールの表示を維持
   const weekControls = document.querySelectorAll('#week-prev-btn, #week-label');
   const monthControls = document.querySelectorAll('#month-prev-btn, #month-label');
   weekControls.forEach(ctrl => ctrl.classList.add('hidden'));
@@ -363,33 +369,21 @@ function moveMonthBackward() {
 }
 
 /**
- * 月を後に移動する（無効化：未来の睡眠は記録しない）
+ * 月を後に移動する（無効化）
  */
 function moveMonthForward() {
-  // 未来への移動は無効化
   return;
-}
-
-/**
- * 月をリセットする（今月に戻す）
- */
-function resetMonth() {
-  currentMonthOffset = 0;
-  updateMonthChart();
-  updateNavButtons();
 }
 
 /**
  * ナビゲーションボタンの状態を更新する
  */
 function updateNavButtons() {
-  // 週のナビゲーションボタン（未来への移動は無効化されているので、常に有効）
   const weekPrevBtn = document.getElementById('week-prev-btn');
   if (weekPrevBtn) {
     weekPrevBtn.disabled = false;
   }
-  
-  // 月のナビゲーションボタン（未来への移動は無効化されているので、常に有効）
+
   const monthPrevBtn = document.getElementById('month-prev-btn');
   if (monthPrevBtn) {
     monthPrevBtn.disabled = false;
@@ -402,16 +396,14 @@ function updateNavButtons() {
 function setupChartTabs() {
   const weekTab = document.getElementById('week-tab');
   const monthTab = document.getElementById('month-tab');
-  
+
   if (weekTab) {
-    weekTab.addEventListener('click', function() {
+    weekTab.addEventListener('click', function () {
       weekTab.classList.add('active');
       if (monthTab) monthTab.classList.remove('active');
-      // 週のオフセットをリセット（タブ切り替え時のみ）
       currentWeekOffset = 0;
       updateWeekChart();
       updateNavButtons();
-      // コントロールの表示を切り替え
       if (typeof setupChartControls === 'function') {
         const weekControls = document.querySelectorAll('#week-prev-btn, #week-label');
         const monthControls = document.querySelectorAll('#month-prev-btn, #month-label');
@@ -420,16 +412,14 @@ function setupChartTabs() {
       }
     });
   }
-  
+
   if (monthTab) {
-    monthTab.addEventListener('click', function() {
+    monthTab.addEventListener('click', function () {
       monthTab.classList.add('active');
       if (weekTab) weekTab.classList.remove('active');
-      // 月のオフセットをリセット（タブ切り替え時のみ）
       currentMonthOffset = 0;
       updateMonthChart();
       updateNavButtons();
-      // コントロールの表示を切り替え
       if (typeof setupChartControls === 'function') {
         const weekControls = document.querySelectorAll('#week-prev-btn, #week-label');
         const monthControls = document.querySelectorAll('#month-prev-btn, #month-label');
@@ -444,7 +434,6 @@ function setupChartTabs() {
  * グラフコントロールの表示切り替えを設定する
  */
 function setupChartControls() {
-  // 初期状態は週次を表示
   const weekControls = document.querySelectorAll('#week-prev-btn, #week-label');
   const monthControls = document.querySelectorAll('#month-prev-btn, #month-label');
   if (weekControls.length > 0 && monthControls.length > 0) {

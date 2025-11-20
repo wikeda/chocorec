@@ -1,159 +1,130 @@
 /**
- * UI制御ロジック
- * DOM操作とUIの更新を担当する
+ * UI操作関連のロジック
+ * フォームの初期化や表示更新を行う
  */
 
 /**
- * 過去7日の日付オプションを生成する
+ * 日付選択の初期化
+ */
+function initDateSelect() {
+  const dateSelect = document.getElementById('date-select');
+  if (!dateSelect) return;
+
+  populateDateOptions(dateSelect);
+}
+
+/**
+ * 日付オプションを生成する
  * @param {HTMLSelectElement} selectElement - セレクト要素
  */
 function populateDateOptions(selectElement) {
   selectElement.innerHTML = '';
   const today = new Date();
+
   for (let i = 0; i < 7; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     const option = document.createElement('option');
-    option.value = formatDate(date);
-    const dayLabel = i === 0 ? '今日' : i === 1 ? '昨日' : `${i}日前`;
-    option.textContent = `${formatDate(date)} (${dayLabel})`;
-    // デフォルトは昨日（i === 1）を選択
-    if (i === 1) {
-      option.selected = true;
-    }
+    option.value = dateStr;
+
+    let label = `${month}/${day}`;
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+    label += ` (${dayOfWeek})`;
+
+    if (i === 0) label += ' - 今日';
+    else if (i === 1) label += ' - 昨日';
+
+    option.textContent = label;
     selectElement.appendChild(option);
   }
 }
 
 /**
- * 時刻選択のオプションを生成する
- * @param {HTMLSelectElement} selectElement - セレクト要素
- * @param {number} min - 最小値
- * @param {number} max - 最大値
- * @param {number} step - 刻み値（分の場合のみ使用）
+ * 種目選択の初期化
  */
-function populateTimeOptions(selectElement, min, max, step = 1) {
-  selectElement.innerHTML = '';
-  for (let i = min; i <= max; i += step) {
-    const option = document.createElement('option');
-    option.value = i;
-    option.textContent = String(i).padStart(2, '0');
-    selectElement.appendChild(option);
-  }
-}
+function initExerciseSelect() {
+  const exerciseSelect = document.getElementById('exercise-select');
+  if (!exerciseSelect) return;
 
-/**
- * 日付をフォーマットする（YYYY-MM-DD）
- * @param {Date} date - 日付オブジェクト
- * @returns {string} フォーマットされた日付文字列
- */
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+  // 既存のオプションをクリア
+  exerciseSelect.innerHTML = '';
 
-/**
- * 日付を日本語形式でフォーマットする（MM/DD形式）
- * @param {Date} date - 日付オブジェクト
- * @returns {string} フォーマットされた日付文字列
- */
-function formatDateJP(date) {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}/${day}`;
-}
+  // デフォルトの空オプション
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '種目を選択してください';
+  defaultOption.disabled = true;
+  defaultOption.selected = true;
+  exerciseSelect.appendChild(defaultOption);
 
-/**
- * 日時をフォーマットする（DD日 HH:MM形式）
- * @param {Date} date - 日時オブジェクト
- * @returns {string} フォーマットされた日時文字列
- */
-function formatDateTime(date) {
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${day}日 ${hours}:${minutes}`;
-}
-
-/**
- * 睡眠時間をフォーマットする（HH時間MM分形式）
- * @param {number} hours - 時間
- * @param {number} minutes - 分
- * @returns {string} フォーマットされた文字列
- */
-function formatSleepDuration(hours, minutes) {
-  if (hours === 0 && minutes === 0) {
-    return '0分';
-  }
-  const parts = [];
-  if (hours > 0) {
-    parts.push(`${hours}時間`);
-  }
-  if (minutes > 0) {
-    parts.push(`${minutes}分`);
-  }
-  return parts.join('');
-}
-
-/**
- * 昨日・今日の記録表を更新する
- */
-function updateRecentRecordsTable() {
-  const table = document.getElementById('recent-table');
-  if (!table) return;
-  
-  const tbody = table.querySelector('tbody') || document.createElement('tbody');
-  tbody.innerHTML = '';
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  const todayRecords = getRecordsByDate(today);
-  const yesterdayRecords = getRecordsByDate(yesterday);
-  
-  const allRecords = [...todayRecords, ...yesterdayRecords].sort((a, b) => {
-    return new Date(b.startDateTime) - new Date(a.startDateTime);
-  });
-  
-  if (allRecords.length === 0) {
-    const row = document.createElement('tr');
-    row.innerHTML = '<td colspan="2">記録がありません</td>';
-    tbody.appendChild(row);
-  } else {
-    allRecords.forEach(record => {
-      const row = document.createElement('tr');
-      const startDate = new Date(record.startDateTime);
-      row.innerHTML = `
-        <td>${formatDateTime(startDate)}</td>
-        <td>${formatSleepDuration(record.sleepDuration.hours, record.sleepDuration.minutes)}</td>
-      `;
-      tbody.appendChild(row);
+  // constants.jsから種目リストを取得して追加
+  if (typeof EXERCISES !== 'undefined') {
+    EXERCISES.forEach(exercise => {
+      const option = document.createElement('option');
+      option.value = exercise;
+      option.textContent = exercise;
+      exerciseSelect.appendChild(option);
     });
   }
-  
-  if (!table.querySelector('tbody')) {
-    table.appendChild(tbody);
+
+  // 種目変更時のイベントリスナー
+  exerciseSelect.addEventListener('change', function () {
+    updateCountInput();
+  });
+}
+
+/**
+ * セット数プルダウンを初期化
+ */
+function initSetsSelect() {
+  const setsSelect = document.getElementById('sets');
+  if (!setsSelect) return;
+
+  setsSelect.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = i;
+    if (i === 3) option.selected = true; // デフォルトは3セット
+    setsSelect.appendChild(option);
   }
 }
 
 /**
- * フォームをリセットする
+ * 種目選択時に前回の回数とセット数を自動入力
  */
-function resetForm() {
-  const form = document.getElementById('sleep-form');
-  if (form) {
-    form.reset();
-    // 日付を今日に戻す
-    const dateSelect = document.getElementById('date-select');
-    if (dateSelect) {
-      dateSelect.selectedIndex = 0;
+function updateCountInput() {
+  const exerciseSelect = document.getElementById('exercise-select');
+  const countInput = document.getElementById('count');
+  const setsSelect = document.getElementById('sets');
+  
+  if (!exerciseSelect || !countInput || !setsSelect) return;
+
+  const exercise = exerciseSelect.value;
+  const lastData = getLastCount(exercise);
+
+  if (lastData) {
+    // lastDataがオブジェクトか数値かで分岐
+    if (typeof lastData === 'object' && lastData !== null) {
+      countInput.value = lastData.count;
+      if (lastData.sets) {
+        setsSelect.value = lastData.sets;
+      } else {
+        setsSelect.value = 3; // デフォルト
+      }
+    } else {
+      // 古いデータ互換
+      countInput.value = lastData;
+      setsSelect.value = 3; // デフォルト
     }
+  } else {
+    countInput.value = '';
+    setsSelect.value = 3; // デフォルト
   }
 }
-
-
-

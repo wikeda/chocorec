@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="睡眠時間を記録するスマートフォン専用アプリ">
-  <title>RecSleep - 睡眠記録アプリ</title>
+  <meta name="description" content="トレーニングの回数を記録するアプリ">
+  <title>TrainingRec - トレーニング記録</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
 </head>
+
 <body>
   <header class="header">
-    <h1>RecSleep</h1>
+    <h1>TrainingRec</h1>
     <a href="history.html" class="btn-history">履歴</a>
   </header>
 
@@ -30,56 +32,63 @@
         </div>
       </div>
       <div id="chart-container" class="chart-container">
-        <canvas id="sleep-chart"></canvas>
+        <canvas id="training-chart"></canvas>
       </div>
     </section>
-    
+
     <!-- 入力フォーム -->
     <section class="input-form">
-      <form id="sleep-form">
-        <!-- 睡眠開始日時グループ -->
+      <form id="training-form">
+        <!-- 日付選択 -->
         <div class="form-group">
-          <label class="form-label">睡眠開始日時</label>
+          <label class="form-label">日付</label>
           <div class="form-group-row">
             <select id="date-select" name="date" class="form-select" required>
               <!-- 過去7日を動的に生成 -->
             </select>
-            <select id="hour-select" name="hour" class="form-select form-select-time" required>
-              <!-- 00-23を動的に生成 -->
-            </select>
-            <span class="separator">:</span>
-            <select id="minute-select" name="minute" class="form-select form-select-time" required>
-              <!-- 00-55を5分刻みで生成 -->
-            </select>
           </div>
         </div>
-        
-        <!-- 睡眠時間グループ -->
+
+        <!-- 種目選択 -->
         <div class="form-group">
-          <label class="form-label">睡眠時間</label>
+          <label class="form-label">種目</label>
           <div class="form-group-row">
-            <select id="duration-hour-select" name="durationHour" class="form-select form-select-time" required>
-              <!-- 00-23を動的に生成 -->
+            <select id="exercise-select" name="exercise" class="form-select" required>
+              <!-- constants.jsから動的に生成 -->
             </select>
-            <span class="form-unit">時間</span>
-            <select id="duration-minute-select" name="durationMinute" class="form-select form-select-time" required>
-              <!-- 00-55を5分刻みで生成 -->
-            </select>
-            <span class="form-unit">分</span>
           </div>
         </div>
-        
+
+        <!-- 回数入力 -->
+        <div class="form-group">
+          <label for="count">回数</label>
+          <div class="input-group">
+            <input type="number" id="count" required min="1" placeholder="10">
+            <span class="unit">回</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="sets">セット数</label>
+          <div class="input-group">
+            <select id="sets" required>
+              <!-- JavaScriptで生成 -->
+            </select>
+            <span class="unit">セット</span>
+          </div>
+        </div>
+
         <!-- 記録ボタン -->
         <button type="submit" class="btn-submit">記録する</button>
       </form>
     </section>
   </main>
-  
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
+
   <!-- JavaScript -->
-  <script src="js/sleepType.js"></script>
+  <script src="js/constants.js"></script>
   <script src="js/data.js"></script>
   <script src="js/validator.js"></script>
   <script src="js/ui.js"></script>
@@ -88,20 +97,20 @@
   <script src="js/app.js"></script>
   <script>
     // Chart.jsの読み込み完了を待ってからアプリを初期化
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('DOMContentLoaded', function () {
       if (typeof Chart !== 'undefined' && typeof initApp === 'function') {
         initApp();
       } else {
         // Chart.jsが読み込まれるまで待つ
-        const checkChart = setInterval(function() {
+        const checkChart = setInterval(function () {
           if (typeof Chart !== 'undefined' && typeof initApp === 'function') {
             clearInterval(checkChart);
             initApp();
           }
         }, 50);
-        
+
         // タイムアウト（5秒後）
-        setTimeout(function() {
+        setTimeout(function () {
           clearInterval(checkChart);
           if (typeof Chart === 'undefined') {
             console.error('Chart.js failed to load');
@@ -115,5 +124,5 @@
     });
   </script>
 </body>
-</html>
 
+</html>

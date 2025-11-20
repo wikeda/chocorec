@@ -1,31 +1,35 @@
 /**
  * データ管理（LocalStorage操作）
- * 睡眠記録の保存、読み込み、更新、削除を行う
+ * トレーニング記録の保存、読み込み、更新、削除を行う
  */
 
-const STORAGE_KEY = 'recSleepData';
+const STORAGE_KEY = 'trainingRecData';
 const DATA_VERSION = '1.0';
 
 /**
  * ローカルストレージからデータを読み込む
- * @returns {Object} { sleepRecords: [], version: string }
+ * @returns {Object} { trainingRecords: [], lastCounts: {}, version: string }
  */
 function loadFromStorage() {
   try {
     const json = localStorage.getItem(STORAGE_KEY);
     if (!json) {
-      return { sleepRecords: [], version: DATA_VERSION };
+      return { trainingRecords: [], lastCounts: {}, version: DATA_VERSION };
     }
     const data = JSON.parse(json);
-    // バージョンチェック（将来のマイグレーション用）
+    // バージョンチェック
     if (!data.version) {
       data.version = DATA_VERSION;
+    }
+    // lastCountsの初期化
+    if (!data.lastCounts) {
+      data.lastCounts = {};
     }
     return data;
   } catch (error) {
     console.error('Failed to load data:', error);
     alert('データの読み込みに失敗しました。');
-    return { sleepRecords: [], version: DATA_VERSION };
+    return { trainingRecords: [], lastCounts: {}, version: DATA_VERSION };
   }
 }
 
@@ -45,11 +49,11 @@ function saveToStorage(data) {
 }
 
 /**
- * UUIDを生成する（簡易版）
+ * UUIDを生成する
  * @returns {string} UUID文字列
  */
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -57,45 +61,51 @@ function generateUUID() {
 }
 
 /**
- * 全ての睡眠記録を取得する
- * @returns {Array} 睡眠記録の配列
+ * 全てのトレーニング記録を取得する
+ * @returns {Array} トレーニング記録の配列
  */
 function getAllRecords() {
   const data = loadFromStorage();
-  return data.sleepRecords || [];
+  return data.trainingRecords || [];
 }
 
 /**
- * 日付範囲で睡眠記録を取得する
+ * 日付範囲でトレーニング記録を取得する
  * @param {Date} startDate - 開始日
  * @param {Date} endDate - 終了日
- * @returns {Array} 睡眠記録の配列
+ * @returns {Array} トレーニング記録の配列
  */
 function getRecordsByDateRange(startDate, endDate) {
   const records = getAllRecords();
   return records.filter(record => {
-    const recordDate = new Date(record.startDateTime);
-    return recordDate >= startDate && recordDate <= endDate;
+    const recordDate = new Date(record.date);
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    const rDate = new Date(record.date);
+    rDate.setHours(0, 0, 0, 0);
+
+    return rDate >= start && rDate <= end;
   });
 }
 
 /**
- * 特定の日付の睡眠記録を取得する
+ * 特定の日付のトレーニング記録を取得する
  * @param {Date} date - 対象日
- * @returns {Array} 睡眠記録の配列
+ * @returns {Array} トレーニング記録の配列
  */
 function getRecordsByDate(date) {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
-  return getRecordsByDateRange(startOfDay, endOfDay);
+  const targetDateStr = date.toISOString().split('T')[0];
+  const records = getAllRecords();
+  return records.filter(record => record.date === targetDateStr);
 }
 
 /**
- * IDで睡眠記録を取得する
+ * IDでトレーニング記録を取得する
  * @param {string} id - レコードID
- * @returns {Object|null} 睡眠記録またはnull
+ * @returns {Object|null} トレーニング記録またはnull
  */
 function getRecordById(id) {
   const records = getAllRecords();
@@ -103,9 +113,9 @@ function getRecordById(id) {
 }
 
 /**
- * 睡眠記録を追加する
- * @param {Object} record - 睡眠記録（id, createdAt, updatedAt以外）
- * @returns {Object} 追加された睡眠記録
+ * トレーニング記録を追加する
+ * @param {Object} record - トレーニング記録
+ * @returns {Object} 追加されたトレーニング記録
  */
 function addRecord(record) {
   const data = loadFromStorage();
@@ -115,55 +125,84 @@ function addRecord(record) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  data.sleepRecords.push(newRecord);
+  data.trainingRecords.push(newRecord);
+
+  // 前回回数を更新
+  saveLastCount(record.exercise, record.count, record.sets);
+
   saveToStorage(data);
   return newRecord;
 }
 
 /**
- * 睡眠記録を更新する
+ * トレーニング記録を更新する
  * @param {string} id - レコードID
  * @param {Object} updates - 更新内容
- * @returns {Object|null} 更新された睡眠記録またはnull
+ * @returns {Object|null} 更新されたトレーニング記録またはnull
  */
 function updateRecord(id, updates) {
   const data = loadFromStorage();
-  const index = data.sleepRecords.findIndex(record => record.id === id);
+  const index = data.trainingRecords.findIndex(record => record.id === id);
   if (index === -1) {
     return null;
   }
+
   const updatedRecord = {
-    ...data.sleepRecords[index],
+    ...data.trainingRecords[index],
     ...updates,
     updatedAt: new Date().toISOString()
   };
-  data.sleepRecords[index] = updatedRecord;
+  data.trainingRecords[index] = updatedRecord;
+
+  // 前回回数を更新
+  if (updates.exercise && updates.count) {
+    saveLastCount(updates.exercise, updates.count, updates.sets || updatedRecord.sets);
+  }
+
   saveToStorage(data);
   return updatedRecord;
 }
 
 /**
- * 睡眠記録を削除する（将来拡張用）
+ * トレーニング記録を削除する
  * @param {string} id - レコードID
  * @returns {boolean} 削除に成功したかどうか
  */
 function deleteRecord(id) {
   const data = loadFromStorage();
-  const index = data.sleepRecords.findIndex(record => record.id === id);
+  const index = data.trainingRecords.findIndex(record => record.id === id);
   if (index === -1) {
     return false;
   }
-  data.sleepRecords.splice(index, 1);
+  data.trainingRecords.splice(index, 1);
   saveToStorage(data);
   return true;
 }
 
 /**
- * ローカルストレージをクリアする
+ * 種目の前回回数を取得する
+ * @param {string} exercise - 種目名
+ * @returns {Object|null} 前回回数とセット数
  */
-function clearStorage() {
-  localStorage.removeItem(STORAGE_KEY);
+function getLastCount(exercise) {
+  const data = loadFromStorage();
+  // 古いデータ形式（数値のみ）の場合はセット数nullで返す
+  const lastData = data.lastCounts ? data.lastCounts[exercise] : null;
+  if (typeof lastData === 'number') {
+    return { count: lastData, sets: null };
+  }
+  return lastData;
 }
 
-
-
+/**
+ * 指定した種目の前回の回数とセット数を保存する
+ * @param {string} exercise - 種目名
+ * @param {number} count - 回数
+ * @param {number} sets - セット数
+ */
+function saveLastCount(exercise, count, sets) {
+  const data = loadFromStorage();
+  if (!data.lastCounts) data.lastCounts = {};
+  data.lastCounts[exercise] = { count, sets };
+  saveToStorage(data);
+}

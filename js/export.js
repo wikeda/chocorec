@@ -1,6 +1,6 @@
 /**
  * CSVエクスポート機能
- * 睡眠記録データをCSV形式でダウンロードする
+ * トレーニング記録データをCSV形式でダウンロードする
  */
 
 /**
@@ -48,51 +48,48 @@ function escapeCSVValue(value) {
 }
 
 /**
- * 睡眠記録をCSV形式でエクスポートする
+ * トレーニング記録をCSV形式でエクスポートする
  */
 function exportToCSV() {
   const records = getAllRecords();
-  
+
   // CSVヘッダー
   const headers = [
-    'ID',
-    '開始日時',
-    '睡眠時間(時間)',
-    '睡眠時間(分)',
-    '睡眠の種類',
+    '日付',
+    '種目',
+    '回数',
+    'セット数',
     '作成日時',
     '更新日時'
   ];
-  
+
   // CSVデータ行
   const rows = records.map(record => {
-    const startDateTime = formatDateTime(new Date(record.startDateTime));
     const createdAt = formatDateTime(new Date(record.createdAt));
     const updatedAt = formatDateTime(new Date(record.updatedAt));
-    
+
     return [
-      escapeCSVValue(record.id),
-      escapeCSVValue(startDateTime),
-      escapeCSVValue(record.sleepDuration.hours),
-      escapeCSVValue(record.sleepDuration.minutes),
-      escapeCSVValue(record.sleepType === 'night' ? '夜' : '昼'),
+      escapeCSVValue(record.date),
+      escapeCSVValue(record.exercise),
+      escapeCSVValue(record.count),
+      escapeCSVValue(record.sets || 1), // セット数がない古いデータは1とする
       escapeCSVValue(createdAt),
       escapeCSVValue(updatedAt)
     ];
   });
-  
+
   // CSV文字列生成
   const csvContent = [
     headers.join(','),
     ...rows.map(row => row.join(','))
   ].join('\n');
-  
+
   // BOM付きUTF-8でエンコード（Excel対応）
   const bom = '\uFEFF';
   const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-  
+
   // ダウンロード
-  const filename = `RecSleep_export_${formatDateForFilename(new Date())}.csv`;
+  const filename = `TrainingRec_export_${formatDateForFilename(new Date())}.csv`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -102,6 +99,7 @@ function exportToCSV() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
 
 
 
