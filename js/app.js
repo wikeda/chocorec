@@ -14,6 +14,9 @@ function initApp() {
   if (typeof initExerciseSelect === 'function') {
     initExerciseSelect();
   }
+  if (typeof initSetsSelect === 'function') {
+    initSetsSelect();
+  }
 
   // イベントリスナーの設定
   setupEventListeners();
