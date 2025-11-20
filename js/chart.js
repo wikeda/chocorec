@@ -49,7 +49,8 @@ function aggregateDailyTraining(records, startDate, days) {
       }
 
       const sets = record.sets || 3; // デフォルト3セット
-      const load = record.count * sets;
+      const weight = record.weight || 1; // 重さが指定されていない場合は1（従来通り）
+      const load = record.count * sets * weight;
       aggregated[dateKey][record.exercise] += load;
       aggregated[dateKey].total += load;
     }
@@ -146,7 +147,7 @@ function createChart(canvas, data, periodType) {
           beginAtZero: true,
           title: {
             display: true,
-            text: '総負荷 (回数 × セット数)'
+            text: '総負荷 (回数 × セット数 × 重さ)'
           },
           ticks: {
             stepSize: 10

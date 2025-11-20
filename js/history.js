@@ -43,6 +43,8 @@ function renderHistoryList() {
       const color = EXERCISE_COLORS[record.exercise] || '#666';
       // セット数の表示（デフォルト3セット）
       const sets = record.sets || 3;
+      // 重さの表示
+      const weightDisplay = record.weight ? ` @ ${record.weight}kg` : '';
 
       html += `
         <tr class="record-row">
@@ -50,7 +52,7 @@ function renderHistoryList() {
             <input type="radio" name="selected-record" value="${record.id}" id="record-${record.id}" onchange="handleRecordSelection()">
           </td>
           <td class="cell-exercise" style="color: ${color}; font-weight: bold;">${record.exercise}</td>
-          <td class="cell-count">${record.count} 回 x ${sets} セット</td>
+          <td class="cell-count">${record.count} 回 x ${sets} セット${weightDisplay}</td>
         </tr>
       `;
     });
@@ -155,6 +157,7 @@ function openEditModal(recordId) {
   const exerciseSelect = document.getElementById('edit-exercise-select');
   const countInput = document.getElementById('edit-count-input');
   const setsSelect = document.getElementById('edit-sets-select');
+  const weightSelect = document.getElementById('edit-weight-select');
 
   if (dateSelect) {
     // 日付選択のオプションを再生成（過去7日）
@@ -181,6 +184,18 @@ function openEditModal(recordId) {
 
   if (setsSelect) {
     setsSelect.value = record.sets || 3;
+  }
+
+  if (weightSelect) {
+    // 重さセレクトの初期化（ui.jsの関数を使用）
+    if (typeof initWeightSelect === 'function') {
+      // edit用のselectを初期化
+      const tempWeightSelect = weightSelect;
+      tempWeightSelect.id = 'weight'; // 一時的にIDを変更
+      initWeightSelect();
+      tempWeightSelect.id = 'edit-weight-select'; // 元に戻す
+    }
+    weightSelect.value = record.weight || '';
   }
 
   modal.classList.remove('hidden');
@@ -257,6 +272,15 @@ function initEditForm() {
       setsSelect.appendChild(option);
     }
   }
+
+  // 重さ選択の初期化
+  const weightSelect = document.getElementById('edit-weight-select');
+  if (weightSelect && typeof initWeightSelect === 'function') {
+    const tempWeightSelect = weightSelect;
+    tempWeightSelect.id = 'weight'; // 一時的にIDを変更
+    initWeightSelect();
+    tempWeightSelect.id = 'edit-weight-select'; // 元に戻す
+  }
 }
 
 /**
@@ -275,6 +299,7 @@ function handleEditSubmit(event) {
   const exercise = formData.get('exercise');
   const count = parseInt(formData.get('count'), 10);
   const sets = parseInt(formData.get('sets'), 10);
+  const weight = formData.get('weight') ? parseFloat(formData.get('weight')) : null;
 
   if (!date || !exercise || isNaN(count) || count <= 0 || isNaN(sets) || sets <= 0) {
     alert('正しい値を入力してください');
@@ -288,6 +313,14 @@ function handleEditSubmit(event) {
     count: count,
     sets: sets
   };
+
+  // 重さが指定されている場合のみ追加
+  if (weight !== null && weight > 0) {
+    updates.weight = weight;
+  } else {
+    // 重さがない場合は削除
+    updates.weight = null;
+  }
 
   try {
     updateRecord(editingRecordId, updates);

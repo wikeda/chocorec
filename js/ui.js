@@ -116,13 +116,39 @@ function initSetsSelect() {
 }
 
 /**
- * 種目選択時に前回の回数とセット数を自動入力
+ * 重さプルダウンを初期化
+ */
+function initWeightSelect() {
+  const weightSelect = document.getElementById('weight');
+  if (!weightSelect) return;
+
+  weightSelect.innerHTML = '';
+
+  // 空のオプション（重さなし）
+  const noneOption = document.createElement('option');
+  noneOption.value = '';
+  noneOption.textContent = 'なし';
+  weightSelect.appendChild(noneOption);
+
+  // 5kg刻みで100kgまで
+  for (let i = 5; i <= 100; i += 5) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = i;
+    if (i === 20) option.selected = true; // デフォルトは20kg
+    weightSelect.appendChild(option);
+  }
+}
+
+/**
+ * 種目選択時に前回の回数、セット数、重さを自動入力
  */
 function updateCountInput() {
   const exerciseSelect = document.getElementById('exercise-select');
   const countInput = document.getElementById('count');
   const setsSelect = document.getElementById('sets');
-  
+  const weightSelect = document.getElementById('weight');
+
   if (!exerciseSelect || !countInput || !setsSelect) return;
 
   const exercise = exerciseSelect.value;
@@ -137,13 +163,27 @@ function updateCountInput() {
       } else {
         setsSelect.value = 3; // デフォルト
       }
+      // 重さも自動入力
+      if (weightSelect) {
+        if (lastData.weight !== null && lastData.weight !== undefined) {
+          weightSelect.value = lastData.weight;
+        } else {
+          weightSelect.value = 20; // デフォルト20kg
+        }
+      }
     } else {
       // 古いデータ互換
       countInput.value = lastData;
       setsSelect.value = 3; // デフォルト
+      if (weightSelect) {
+        weightSelect.value = 20; // デフォルト20kg
+      }
     }
   } else {
     countInput.value = '';
     setsSelect.value = 3; // デフォルト
+    if (weightSelect) {
+      weightSelect.value = 20; // デフォルト20kg
+    }
   }
 }
