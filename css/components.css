@@ -271,29 +271,24 @@ select:disabled {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 /* 総回数表示 */
 .total-count-display {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 4px;
   font-weight: 600;
-}
-
-.total-count-label {
-  font-size: 14px;
-  color: #6b7280;
 }
 
 .total-count-value {
   font-size: 24px;
   color: #1f2937;
   font-weight: 700;
-  min-width: 40px;
+  min-width: 32px;
   text-align: center;
 }
 
@@ -319,7 +314,7 @@ select:disabled {
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
-  min-width: 80px;
+  min-width: 64px;
   text-align: center;
 }
 
@@ -510,5 +505,11 @@ select:disabled {
   
   .modal-actions button {
     width: 100%;
+  }
+}
+
+@media (max-width: 340px) {
+  .chart-header {
+    flex-wrap: wrap;
   }
 }

@@ -127,8 +127,8 @@ function addRecord(record) {
   };
   data.trainingRecords.push(newRecord);
 
-  // 前回回数を更新
-  saveLastCount(record.exercise, record.count, record.sets);
+  // 前回回数と重さを更新
+  saveLastCount(record.exercise, record.count, record.sets, record.weight || null);
 
   saveToStorage(data);
   return newRecord;
@@ -154,9 +154,10 @@ function updateRecord(id, updates) {
   };
   data.trainingRecords[index] = updatedRecord;
 
-  // 前回回数を更新
+  // 前回回数と重さを更新
   if (updates.exercise && updates.count) {
-    saveLastCount(updates.exercise, updates.count, updates.sets || updatedRecord.sets);
+    const weight = updates.weight !== undefined ? updates.weight : updatedRecord.weight;
+    saveLastCount(updates.exercise, updates.count, updates.sets || updatedRecord.sets, weight || null);
   }
 
   saveToStorage(data);
@@ -182,27 +183,28 @@ function deleteRecord(id) {
 /**
  * 種目の前回回数を取得する
  * @param {string} exercise - 種目名
- * @returns {Object|null} 前回回数とセット数
+ * @returns {Object|null} 前回回数、セット数、重さ
  */
 function getLastCount(exercise) {
   const data = loadFromStorage();
   // 古いデータ形式（数値のみ）の場合はセット数nullで返す
   const lastData = data.lastCounts ? data.lastCounts[exercise] : null;
   if (typeof lastData === 'number') {
-    return { count: lastData, sets: null };
+    return { count: lastData, sets: null, weight: null };
   }
   return lastData;
 }
 
 /**
- * 指定した種目の前回の回数とセット数を保存する
+ * 指定した種目の前回の回数、セット数、重さを保存する
  * @param {string} exercise - 種目名
  * @param {number} count - 回数
  * @param {number} sets - セット数
+ * @param {number|null} weight - 重さ
  */
-function saveLastCount(exercise, count, sets) {
+function saveLastCount(exercise, count, sets, weight = null) {
   const data = loadFromStorage();
   if (!data.lastCounts) data.lastCounts = {};
-  data.lastCounts[exercise] = { count, sets };
+  data.lastCounts[exercise] = { count, sets, weight };
   saveToStorage(data);
 }
