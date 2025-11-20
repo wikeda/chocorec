@@ -1,27 +1,30 @@
 /**
  * 定数定義
+ * 種目マスタから動的に取得する
  */
 
-const EXERCISES = [
-    'レッグプレス',
-    'チェストプレス',
-    'ラットプルダウン',
-    'アブベンチ',
-    'アブダクション',
-    'アダクション',
-    'ディップス',
-    'ショルダープレス',
-    'バイセップスカール'
-];
+// 後方互換性のため、EXERCISES配列とEXERCISE_COLORSオブジェクトを提供
+// 実際のデータは exerciseMaster.js から取得される
 
-const EXERCISE_COLORS = {
-    'レッグプレス': '#ef4444',
-    'チェストプレス': '#f97316',
-    'ラットプルダウン': '#f59e0b',
-    'アブベンチ': '#84cc16',
-    'アブダクション': '#10b981',
-    'アダクション': '#06b6d4',
-    'ディップス': '#3b82f6',
-    'ショルダープレス': '#6366f1',
-    'バイセップスカール': '#8b5cf6'
-};
+// グローバル変数として定義（他のファイルから参照される）
+let EXERCISES = [];
+let EXERCISE_COLORS = {};
+
+/**
+ * 種目データを初期化（exerciseMaster.jsが読み込まれた後に実行）
+ */
+function initializeExerciseConstants() {
+  if (typeof getExerciseNames === 'function') {
+    EXERCISES = getExerciseNames();
+  }
+  if (typeof getExerciseColorMap === 'function') {
+    EXERCISE_COLORS = getExerciseColorMap();
+  }
+}
+
+// DOMContentLoadedで初期化
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', function() {
+    initializeExerciseConstants();
+  });
+}

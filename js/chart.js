@@ -17,6 +17,11 @@ let currentMonthOffset = 0; // 月のオフセット（0=今月、-1=先月、1=
 function aggregateDailyTraining(records, startDate, days) {
   const aggregated = {};
 
+  // すべての種目（アクティブと削除済みを含む）を取得
+  const allExercises = typeof getAllExercises === 'function'
+    ? getAllExercises().map(ex => ex.name)
+    : EXERCISES;
+
   // 日付ごとの初期化
   for (let i = 0; i < days; i++) {
     const date = new Date(startDate);
@@ -29,7 +34,7 @@ function aggregateDailyTraining(records, startDate, days) {
     };
 
     // 各種目の初期化
-    EXERCISES.forEach(ex => {
+    allExercises.forEach(ex => {
       aggregated[dateKey][ex] = 0;
     });
   }
@@ -38,12 +43,15 @@ function aggregateDailyTraining(records, startDate, days) {
   records.forEach(record => {
     const dateKey = record.date;
     if (aggregated[dateKey]) {
-      if (aggregated[dateKey][record.exercise] !== undefined) {
-        const sets = record.sets || 3; // デフォルト3セット
-        const load = record.count * sets;
-        aggregated[dateKey][record.exercise] += load;
-        aggregated[dateKey].total += load;
+      // 種目が存在しない場合は動的に追加
+      if (aggregated[dateKey][record.exercise] === undefined) {
+        aggregated[dateKey][record.exercise] = 0;
       }
+
+      const sets = record.sets || 3; // デフォルト3セット
+      const load = record.count * sets;
+      aggregated[dateKey][record.exercise] += load;
+      aggregated[dateKey].total += load;
     }
   });
 
@@ -88,11 +96,21 @@ function createChart(canvas, data, periodType) {
   }
 
   // データセットの作成
-  const datasets = EXERCISES.map(exercise => {
+  // すべての種目（アクティブと削除済みを含む）を取得
+  const allExercises = typeof getAllExercises === 'function'
+    ? getAllExercises().map(ex => ex.name)
+    : EXERCISES;
+
+  // 色マップを取得
+  const colorMap = typeof getExerciseColorMap === 'function'
+    ? getExerciseColorMap()
+    : EXERCISE_COLORS;
+
+  const datasets = allExercises.map(exercise => {
     return {
       label: exercise,
-      data: data.map(d => d[exercise]),
-      backgroundColor: EXERCISE_COLORS[exercise] || '#cbd5e1',
+      data: data.map(d => d[exercise] || 0),
+      backgroundColor: colorMap[exercise] || '#cbd5e1',
       stack: 'training'
     };
   });

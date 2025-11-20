@@ -6,6 +6,7 @@
 /* ボタン */
 .btn-download,
 .btn-history,
+.btn-exercises,
 .btn-submit,
 .btn-back,
 .btn-save,
@@ -39,17 +40,26 @@
   background-color: #1e40af;
 }
 
-.btn-history {
+.btn-history,
+.btn-exercises {
   background-color: #2563eb;
   color: #ffffff;
 }
 
-.btn-history:hover {
+.btn-history:hover,
+.btn-exercises:hover {
   background-color: #1d4ed8;
 }
 
-.btn-history:active {
+.btn-history:active,
+.btn-exercises:active {
   background-color: #1e40af;
+}
+
+/* ヘッダーボタングループ */
+.header-buttons {
+  display: flex;
+  gap: 8px;
 }
 
 .btn-submit {
