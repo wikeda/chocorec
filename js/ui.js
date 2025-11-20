@@ -37,9 +37,6 @@ function populateDateOptions(selectElement) {
     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
     label += ` (${dayOfWeek})`;
 
-    if (i === 0) label += ' - 今日';
-    else if (i === 1) label += ' - 昨日';
-
     option.textContent = label;
     selectElement.appendChild(option);
   }

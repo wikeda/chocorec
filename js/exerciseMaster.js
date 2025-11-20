@@ -284,7 +284,6 @@ function updateTrainingRecordExerciseName(oldName, newName) {
 
     if (updateCount > 0) {
       saveToStorage(data);
-      console.log(`Updated ${updateCount} training records from "${oldName}" to "${newName}"`);
     }
   } catch (error) {
     console.error('Failed to update training records:', error);
