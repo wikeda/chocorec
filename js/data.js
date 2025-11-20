@@ -187,12 +187,52 @@ function deleteRecord(id) {
  */
 function getLastCount(exercise) {
   const data = loadFromStorage();
-  // 古いデータ形式（数値のみ）の場合はセット数nullで返す
-  const lastData = data.lastCounts ? data.lastCounts[exercise] : null;
-  if (typeof lastData === 'number') {
-    return { count: lastData, sets: null, weight: null };
+  const lastCounts = data.lastCounts ? data.lastCounts[exercise] : null;
+
+  // 記録から最新を常に算出し、キャッシュも更新する
+  const latestRecord = findLatestRecordValues(data, exercise);
+  if (latestRecord) {
+    if (!data.lastCounts) data.lastCounts = {};
+    data.lastCounts[exercise] = latestRecord;
+    saveToStorage(data);
+    return latestRecord;
   }
-  return lastData;
+
+  // 古いデータ形式（数値のみ）の場合はセット数nullで返す
+  if (typeof lastCounts === 'number') {
+    return { count: lastCounts, sets: null, weight: null };
+  }
+
+  // 記録が無い場合のみ既存のキャッシュを返す
+  return lastCounts || null;
+}
+
+/**
+ * 記録から指定種目の最新値を取得する（lastCountsが無くても復元）
+ * @param {Object} data - ストレージデータ
+ * @param {string} exercise - 種目名
+ * @returns {Object|null} {count, sets, weight} または null
+ */
+function findLatestRecordValues(data, exercise) {
+  const records = data.trainingRecords || [];
+  const latest = records
+    .filter(record => record.exercise === exercise)
+    .sort((a, b) => {
+      // 日付を優先、同日の場合は更新日時/作成日時で降順
+      if (a.date > b.date) return -1;
+      if (a.date < b.date) return 1;
+      const aUpdated = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const bUpdated = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return bUpdated - aUpdated;
+    })[0];
+
+  if (!latest) return null;
+
+  return {
+    count: latest.count,
+    sets: latest.sets || null,
+    weight: latest.weight !== undefined ? latest.weight : null
+  };
 }
 
 /**

@@ -31,7 +31,7 @@
         </div>
         <div class="total-count-display">
           <span id="total-count-value" class="total-count-value">0</span>
-          <span class="total-count-unit">回</span>
+          <span class="total-count-unit">pw</span>
         </div>
         <div class="chart-tabs">
           <button id="week-tab" class="tab active">週次</button>
@@ -59,26 +59,18 @@
           </div>
         </div>
 
-        <!-- 回数とセット数 -->
+        <!-- 回数・セット数・重さ（任意） -->
         <div class="form-group">
-          <label class="form-label">回数・セット数</label>
+          <label class="form-label">回数・セット数・重さ（任意）</label>
           <div class="form-group-row">
             <select id="count" name="count" class="form-select" required>
               <!-- JavaScriptで生成 -->
             </select>
-            <span class="form-unit">回</span>
             <span class="separator">×</span>
             <select id="sets" name="sets" class="form-select" required>
               <!-- JavaScriptで生成 -->
             </select>
-            <span class="form-unit">セット</span>
-          </div>
-        </div>
-
-        <!-- 重さ -->
-        <div class="form-group">
-          <label class="form-label">重さ（任意）</label>
-          <div class="form-group-row">
+            <span class="separator">×</span>
             <select id="weight" name="weight" class="form-select">
               <!-- JavaScriptで生成 -->
             </select>

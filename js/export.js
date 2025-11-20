@@ -59,6 +59,7 @@ function exportToCSV() {
     '種目',
     '回数',
     'セット数',
+    '重さ(kg)',
     '作成日時',
     '更新日時'
   ];
@@ -73,6 +74,7 @@ function exportToCSV() {
       escapeCSVValue(record.exercise),
       escapeCSVValue(record.count),
       escapeCSVValue(record.sets || 1), // セット数がない古いデータは1とする
+      escapeCSVValue(record.weight || ''), // 重さがない場合は空
       escapeCSVValue(createdAt),
       escapeCSVValue(updatedAt)
     ];
