@@ -29,4 +29,11 @@
     <string name="placeholder_color">#3b82f6</string>
     <string name="edit_title">記録を編集</string>
     <string name="toast_csv_saved">CSVを保存しました</string>
+    <string name="menu_input">入力画面</string>
+    <string name="menu_exercises">種目管理</string>
+    <string name="menu_history">履歴</string>
+    <string name="menu_version">バージョン</string>
+    <string name="action_menu">メニュー</string>
+    <string name="version_title">バージョン</string>
+    <string name="version_label">アプリのバージョン</string>
 </resources>

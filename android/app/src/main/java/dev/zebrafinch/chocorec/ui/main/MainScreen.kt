@@ -27,124 +27,205 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Menu
 import dev.zebrafinch.chocorec.R
 import dev.zebrafinch.chocorec.util.DateTimeUtil
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun MainScreen(
+    onNavigateMain: () -> Unit,
     onNavigateHistory: () -> Unit,
     onNavigateExercises: () -> Unit,
+    onNavigateVersion: () -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(LocalContext.current)
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val chartLabelWidth = 64.dp
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.app_name)) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                actions = {
-                    IconButton(onClick = onNavigateExercises) {
-                        Icon(
-                            imageVector = Icons.Filled.FitnessCenter,
-                            contentDescription = stringResource(R.string.action_exercises)
-                        )
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    ModalDrawerSheet(
+                        modifier = Modifier.widthIn(min = 240.dp, max = 280.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            NavigationDrawerItem(
+                                label = { Text(text = stringResource(R.string.menu_input)) },
+                                selected = false,
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    onNavigateMain()
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text(text = stringResource(R.string.menu_exercises)) },
+                                selected = false,
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    onNavigateExercises()
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text(text = stringResource(R.string.menu_history)) },
+                                selected = false,
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    onNavigateHistory()
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text(text = stringResource(R.string.menu_version)) },
+                                selected = false,
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    onNavigateVersion()
+                                }
+                            )
+                        }
                     }
-                    IconButton(onClick = onNavigateHistory) {
-                        Icon(
-                            imageVector = Icons.Filled.History,
-                            contentDescription = stringResource(R.string.action_history)
+                }
+            }
+        ) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(text = stringResource(R.string.app_name)) },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            actions = {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Menu,
+                                        contentDescription = stringResource(R.string.action_menu)
+                                    )
+                                }
+                            }
+                        )
+                    },
+                    bottomBar = {
+                        Surface(shadowElevation = 8.dp, tonalElevation = 2.dp) {
+                            RecordForm(
+                                dates = uiState.dates,
+                                exercises = uiState.exercises,
+                                counts = uiState.counts,
+                                sets = uiState.sets,
+                                weights = uiState.weights,
+                                selectedDate = uiState.selectedDate,
+                                selectedExercise = uiState.selectedExercise,
+                                selectedCount = uiState.selectedCount,
+                                selectedSets = uiState.selectedSets,
+                                selectedWeight = uiState.selectedWeight,
+                                onDateSelected = viewModel::onDateSelected,
+                                onExerciseSelected = viewModel::onExerciseSelected,
+                                onCountSelected = viewModel::onCountSelected,
+                                onSetsSelected = viewModel::onSetsSelected,
+                                onWeightSelected = viewModel::onWeightSelected,
+                                onRecord = viewModel::onRecord,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .navigationBarsPadding()
+                            )
+                        }
+                    }
+                ) { innerPadding ->
+                    val scrollState = rememberScrollState()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(12.dp)
+                            .verticalScroll(scrollState),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        PeriodTabs(
+                            periodType = uiState.periodType,
+                            onPeriodSelected = viewModel::onPeriodChanged
+                        )
+                        SummaryRow(
+                            totalLoad = uiState.totalLoad,
+                            totalRecords = uiState.totalRecords
+                        )
+                        ChartSection(
+                            days = uiState.chartDays,
+                            maxTotal = uiState.chartMaxTotal,
+                            labelWidth = chartLabelWidth
                         )
                     }
                 }
-            )
-        },
-        bottomBar = {
-            Surface(shadowElevation = 8.dp, tonalElevation = 2.dp) {
-                RecordForm(
-                    dates = uiState.dates,
-                    exercises = uiState.exercises,
-                    counts = uiState.counts,
-                    sets = uiState.sets,
-                    weights = uiState.weights,
-                    selectedDate = uiState.selectedDate,
-                    selectedExercise = uiState.selectedExercise,
-                    selectedCount = uiState.selectedCount,
-                    selectedSets = uiState.selectedSets,
-                    selectedWeight = uiState.selectedWeight,
-                    onDateSelected = viewModel::onDateSelected,
-                    onExerciseSelected = viewModel::onExerciseSelected,
-                    onCountSelected = viewModel::onCountSelected,
-                    onSetsSelected = viewModel::onSetsSelected,
-                    onWeightSelected = viewModel::onWeightSelected,
-                    onRecord = viewModel::onRecord,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .navigationBarsPadding()
-                )
             }
-        }
-    ) { innerPadding ->
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(12.dp)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            PeriodTabs(
-                periodType = uiState.periodType,
-                onPeriodSelected = viewModel::onPeriodChanged
-            )
-            SummaryRow(
-                totalLoad = uiState.totalLoad,
-                totalRecords = uiState.totalRecords
-            )
-            ChartSection(
-                days = uiState.chartDays,
-                maxTotal = uiState.chartMaxTotal
-            )
         }
     }
 }
@@ -212,7 +293,7 @@ private fun SummaryCard(title: String, value: String, modifier: Modifier = Modif
 }
 
 @Composable
-private fun ChartSection(days: List<ChartDay>, maxTotal: Int) {
+private fun ChartSection(days: List<ChartDay>, maxTotal: Int, labelWidth: androidx.compose.ui.unit.Dp) {
     if (days.isEmpty()) {
         Box(
             modifier = Modifier
@@ -237,14 +318,15 @@ private fun ChartSection(days: List<ChartDay>, maxTotal: Int) {
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant)
             .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         if (legendEntries.isNotEmpty()) {
             LegendSection(entries = legendEntries)
         }
         days.forEach { day ->
-            ChartRow(day = day, maxTotal = maxTotal)
+            ChartRow(day = day, maxTotal = maxTotal, labelWidth = labelWidth)
         }
+        ChartAxis(maxTotal = maxTotal, labelWidth = labelWidth)
     }
 }
 
@@ -272,7 +354,7 @@ private fun LegendSection(entries: List<ChartSegment>) {
 }
 
 @Composable
-private fun ChartRow(day: ChartDay, maxTotal: Int) {
+private fun ChartRow(day: ChartDay, maxTotal: Int, labelWidth: androidx.compose.ui.unit.Dp) {
     val emptyColor = MaterialTheme.colorScheme.outlineVariant
     val dayColor = runCatching { LocalDate.parse(day.date).dayOfWeek }.getOrNull()
     val labelColor = when (dayColor) {
@@ -281,6 +363,8 @@ private fun ChartRow(day: ChartDay, maxTotal: Int) {
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val labelStyle = MaterialTheme.typography.headlineSmall
+    val gridLineColor = MaterialTheme.colorScheme.outlineVariant
+    val dashEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f))
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -288,7 +372,9 @@ private fun ChartRow(day: ChartDay, maxTotal: Int) {
         Text(
             text = day.label,
             style = labelStyle,
-            modifier = Modifier.widthIn(min = 48.dp),
+            modifier = Modifier.width(labelWidth),
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
             color = labelColor
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -297,6 +383,16 @@ private fun ChartRow(day: ChartDay, maxTotal: Int) {
             .fillMaxWidth()
         ) {
             val safeMax = if (maxTotal <= 0) 1 else maxTotal
+            listOf(0f, 0.25f, 0.5f, 0.75f, 1f).forEach { fraction ->
+                val x = size.width * fraction
+                drawLine(
+                    color = gridLineColor,
+                    start = Offset(x, 0f),
+                    end = Offset(x, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = dashEffect
+                )
+            }
             var startX = 0f
             day.segments.forEach { segment ->
                 val width = (segment.value.toFloat() / safeMax) * size.width
@@ -309,12 +405,36 @@ private fun ChartRow(day: ChartDay, maxTotal: Int) {
                     startX += width
                 }
             }
-            if (day.total == 0) {
-                drawRect(
-                    color = emptyColor,
-                    topLeft = Offset(0f, 0f),
-                    size = Size(size.width * 0.05f, size.height)
-                )
+        }
+    }
+}
+
+@Composable
+private fun ChartAxis(maxTotal: Int, labelWidth: androidx.compose.ui.unit.Dp) {
+    val safeMax = if (maxTotal <= 0) 0 else maxTotal
+    val steps = listOf(
+        0,
+        safeMax / 4,
+        safeMax / 2,
+        (safeMax * 3) / 4,
+        safeMax
+    )
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.width(labelWidth))
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                steps.forEach { step ->
+                    Text(text = step.toString(), style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }

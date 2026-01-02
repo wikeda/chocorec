@@ -9,6 +9,7 @@ import dev.zebrafinch.chocorec.util.DateTimeUtil
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -75,6 +76,10 @@ class MainViewModel(
             refreshSummary()
             selectNextExercise()
         }
+    }
+
+    fun refresh() {
+        refreshSummary()
     }
 
     private fun loadInitial() {
@@ -206,6 +211,7 @@ class MainViewModel(
     ): List<ChartDay> {
         val start = LocalDate.parse(startDate)
         val end = LocalDate.parse(endDate)
+        val labelFormatter = DateTimeFormatter.ofPattern("MM/dd")
         val days = generateSequence(start) { current ->
             val next = current.plusDays(1)
             if (next.isAfter(end)) null else next
@@ -234,7 +240,7 @@ class MainViewModel(
                     )
                 }
             val total = segments.sumOf { it.value }
-            val label = "${day.monthValue}/${day.dayOfMonth}"
+            val label = day.format(labelFormatter)
             ChartDay(
                 date = dateKey,
                 label = label,
