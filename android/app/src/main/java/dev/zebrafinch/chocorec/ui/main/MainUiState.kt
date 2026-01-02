@@ -7,6 +7,7 @@ enum class PeriodType {
 
 data class MainUiState(
     val periodType: PeriodType = PeriodType.WEEK,
+    val periodOffset: Int = 0,
     val totalLoad: Int = 0,
     val totalRecords: Int = 0,
     val chartDays: List<ChartDay> = emptyList(),

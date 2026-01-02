@@ -3,6 +3,13 @@ package dev.zebrafinch.chocorec.ui.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +24,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -57,7 +65,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -76,6 +86,7 @@ import dev.zebrafinch.chocorec.R
 import dev.zebrafinch.chocorec.util.DateTimeUtil
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 @Composable
@@ -111,7 +122,7 @@ fun MainScreen(
             drawerContent = {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     ModalDrawerSheet(
-                        modifier = Modifier.widthIn(min = 240.dp, max = 280.dp)
+                        modifier = Modifier.widthIn(min = 200.dp, max = 240.dp)
                     ) {
                         Column(
                             modifier = Modifier
@@ -119,14 +130,6 @@ fun MainScreen(
                                 .padding(vertical = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            NavigationDrawerItem(
-                                label = { Text(text = stringResource(R.string.menu_input)) },
-                                selected = false,
-                                onClick = {
-                                    scope.launch { drawerState.close() }
-                                    onNavigateMain()
-                                }
-                            )
                             NavigationDrawerItem(
                                 label = { Text(text = stringResource(R.string.menu_exercises)) },
                                 selected = false,
@@ -218,15 +221,55 @@ fun MainScreen(
                             totalLoad = uiState.totalLoad,
                             totalRecords = uiState.totalRecords
                         )
-                        ChartSection(
+                        ChartSectionAnimated(
+                            periodType = uiState.periodType,
+                            periodOffset = uiState.periodOffset,
                             days = uiState.chartDays,
                             maxTotal = uiState.chartMaxTotal,
-                            labelWidth = chartLabelWidth
+                            labelWidth = chartLabelWidth,
+                            onSwipeLeft = { viewModel.shiftPeriod(1) },
+                            onSwipeRight = { viewModel.shiftPeriod(-1) }
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun ChartSectionAnimated(
+    periodType: PeriodType,
+    periodOffset: Int,
+    days: List<ChartDay>,
+    maxTotal: Int,
+    labelWidth: androidx.compose.ui.unit.Dp,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
+) {
+    val target = Pair(periodType, periodOffset)
+    AnimatedContent(
+        targetState = target,
+        transitionSpec = {
+            if (initialState.first != targetState.first) {
+                fadeIn().togetherWith(fadeOut())
+            } else if (targetState.second < initialState.second) {
+                slideInHorizontally { -it }.togetherWith(slideOutHorizontally { it })
+            } else if (targetState.second > initialState.second) {
+                slideInHorizontally { it }.togetherWith(slideOutHorizontally { -it })
+            } else {
+                fadeIn().togetherWith(fadeOut())
+            }
+        }
+    ) {
+        ChartSection(
+            days = days,
+            maxTotal = maxTotal,
+            labelWidth = labelWidth,
+            onSwipeLeft = onSwipeLeft,
+            onSwipeRight = onSwipeRight
+        )
     }
 }
 
@@ -293,7 +336,13 @@ private fun SummaryCard(title: String, value: String, modifier: Modifier = Modif
 }
 
 @Composable
-private fun ChartSection(days: List<ChartDay>, maxTotal: Int, labelWidth: androidx.compose.ui.unit.Dp) {
+private fun ChartSection(
+    days: List<ChartDay>,
+    maxTotal: Int,
+    labelWidth: androidx.compose.ui.unit.Dp,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
+) {
     if (days.isEmpty()) {
         Box(
             modifier = Modifier
@@ -311,6 +360,9 @@ private fun ChartSection(days: List<ChartDay>, maxTotal: Int, labelWidth: androi
     val legendEntries = days
         .flatMap { it.segments }
         .distinctBy { it.name }
+    val density = LocalDensity.current
+    val swipeThresholdPx = with(density) { 48.dp.toPx() }
+    var dragTotal by remember { mutableStateOf(0f) }
 
     Column(
         modifier = Modifier
@@ -323,10 +375,27 @@ private fun ChartSection(days: List<ChartDay>, maxTotal: Int, labelWidth: androi
         if (legendEntries.isNotEmpty()) {
             LegendSection(entries = legendEntries)
         }
-        days.forEach { day ->
-            ChartRow(day = day, maxTotal = maxTotal, labelWidth = labelWidth)
+        Column(
+            modifier = Modifier.pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (abs(dragTotal) > swipeThresholdPx) {
+                            if (dragTotal < 0f) onSwipeLeft() else onSwipeRight()
+                        }
+                        dragTotal = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        dragTotal += dragAmount
+                    }
+                )
+            },
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            days.forEach { day ->
+                ChartRow(day = day, maxTotal = maxTotal, labelWidth = labelWidth)
+            }
+            ChartAxis(maxTotal = maxTotal, labelWidth = labelWidth)
         }
-        ChartAxis(maxTotal = maxTotal, labelWidth = labelWidth)
     }
 }
 

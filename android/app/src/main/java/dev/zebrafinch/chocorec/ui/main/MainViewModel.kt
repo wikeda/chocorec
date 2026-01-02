@@ -30,7 +30,14 @@ class MainViewModel(
     }
 
     fun onPeriodChanged(periodType: PeriodType) {
-        _uiState.update { it.copy(periodType = periodType) }
+        _uiState.update { it.copy(periodType = periodType, periodOffset = 0) }
+        refreshSummary()
+    }
+
+    fun shiftPeriod(delta: Int) {
+        val nextOffset = (_uiState.value.periodOffset + delta).coerceAtMost(0)
+        if (nextOffset == _uiState.value.periodOffset) return
+        _uiState.update { it.copy(periodOffset = nextOffset) }
         refreshSummary()
     }
 
@@ -125,7 +132,7 @@ class MainViewModel(
 
     private fun refreshSummary() {
         viewModelScope.launch {
-            val range = dateRange(_uiState.value.periodType)
+            val range = dateRange(_uiState.value.periodType, _uiState.value.periodOffset)
             val records = trainingRepository.getRecordsByDateRange(range.first, range.second)
             val totalLoad = records.sumOf { record ->
                 val weight = record.weight ?: 1f
@@ -189,16 +196,16 @@ class MainViewModel(
         return value.toFloatOrNull()
     }
 
-    private fun dateRange(periodType: PeriodType): Pair<String, String> {
+    private fun dateRange(periodType: PeriodType, periodOffset: Int): Pair<String, String> {
         val today = LocalDate.now()
         return when (periodType) {
             PeriodType.WEEK -> {
-                val monday = today.with(DayOfWeek.MONDAY)
+                val monday = today.with(DayOfWeek.MONDAY).plusWeeks(periodOffset.toLong())
                 val sunday = monday.plusDays(6)
                 Pair(monday.toString(), sunday.toString())
             }
             PeriodType.MONTH -> {
-                val ym = YearMonth.from(today)
+                val ym = YearMonth.from(today).plusMonths(periodOffset.toLong())
                 Pair(ym.atDay(1).toString(), ym.atEndOfMonth().toString())
             }
         }
