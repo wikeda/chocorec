@@ -4,13 +4,13 @@
     <string name="action_exercises">種目</string>
     <string name="tab_week">週次</string>
     <string name="tab_month">月次</string>
-    <string name="summary_total_load">合計負荷</string>
+    <string name="summary_total_load">合計負荷（回数×セット×重さ）</string>
     <string name="summary_total_records">記録回数</string>
     <string name="label_date">日付</string>
     <string name="label_exercise">種目</string>
     <string name="label_count">回数</string>
     <string name="label_sets">セット</string>
-    <string name="label_weight">重さ</string>
+    <string name="label_weight">重さ(kg)</string>
     <string name="button_record">記録する</string>
     <string name="placeholder_chart">グラフ表示エリア</string>
     <string name="history_title">履歴</string>

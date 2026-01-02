@@ -42,6 +42,15 @@ object DateTimeUtil {
         }
     }
 
+    fun formatPickerDate(dateStr: String): String {
+        return try {
+            val date = LocalDate.parse(dateStr, dateFormatter)
+            date.format(DateTimeFormatter.ofPattern("MM/dd"))
+        } catch (ex: Exception) {
+            dateStr
+        }
+    }
+
     fun formatCsvDateTime(iso: String): String {
         return try {
             LocalDateTime.parse(iso, dateTimeFormatter).format(csvDateTimeFormatter)

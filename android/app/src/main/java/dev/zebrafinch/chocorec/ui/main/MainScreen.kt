@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -57,6 +59,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import dev.zebrafinch.chocorec.R
+import dev.zebrafinch.chocorec.util.DateTimeUtil
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,12 +124,14 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(12.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             PeriodTabs(
                 periodType = uiState.periodType,
@@ -174,12 +181,12 @@ private fun SummaryRow(totalLoad: Int, totalRecords: Int) {
         SummaryCard(
             title = stringResource(R.string.summary_total_load),
             value = totalLoad.toString(),
-            modifier = Modifier.fillMaxWidth(0.5f)
+            modifier = Modifier.weight(0.7f)
         )
         SummaryCard(
             title = stringResource(R.string.summary_total_records),
             value = totalRecords.toString(),
-            modifier = Modifier.fillMaxWidth(0.5f)
+            modifier = Modifier.weight(0.3f)
         )
     }
 }
@@ -267,18 +274,26 @@ private fun LegendSection(entries: List<ChartSegment>) {
 @Composable
 private fun ChartRow(day: ChartDay, maxTotal: Int) {
     val emptyColor = MaterialTheme.colorScheme.outlineVariant
+    val dayColor = runCatching { LocalDate.parse(day.date).dayOfWeek }.getOrNull()
+    val labelColor = when (dayColor) {
+        DayOfWeek.SATURDAY -> Color(0xFF2563EB)
+        DayOfWeek.SUNDAY -> Color(0xFFDC2626)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val labelStyle = MaterialTheme.typography.headlineSmall
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = day.label,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.widthIn(min = 48.dp)
+            style = labelStyle,
+            modifier = Modifier.widthIn(min = 48.dp),
+            color = labelColor
         )
         Spacer(modifier = Modifier.width(8.dp))
         Canvas(modifier = Modifier
-            .height(12.dp)
+            .height(18.dp)
             .fillMaxWidth()
         ) {
             val safeMax = if (maxTotal <= 0) 1 else maxTotal
@@ -333,10 +348,6 @@ private fun RecordForm(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = stringResource(R.string.label_date) + "・" + stringResource(R.string.label_exercise),
-                style = MaterialTheme.typography.labelLarge
-            )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -346,32 +357,28 @@ private fun RecordForm(
                     options = dates,
                     selected = selectedDate,
                     onSelected = onDateSelected,
-                    modifier = Modifier
-                        .fillMaxWidth(0.30f)
-                        .widthIn(min = 120.dp)
+                    modifier = Modifier.weight(0.35f),
+                    displayTransform = DateTimeUtil::formatPickerDate
                 )
                 DropdownField(
                     label = stringResource(R.string.label_exercise),
                     options = exercises,
                     selected = selectedExercise,
                     onSelected = onExerciseSelected,
-                    modifier = Modifier
-                        .fillMaxWidth(0.70f)
-                        .widthIn(min = 160.dp)
+                    modifier = Modifier.weight(0.65f)
                 )
             }
-            Text(
-                text = stringResource(R.string.label_count) + "・" + stringResource(R.string.label_sets) + "・" + stringResource(R.string.label_weight) + "（任意）",
-                style = MaterialTheme.typography.labelLarge
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 DropdownField(
                     label = stringResource(R.string.label_count),
                     options = counts.map { it.toString() },
                     selected = selectedCount.toString(),
                     onSelected = { onCountSelected(it.toInt()) },
                     modifier = Modifier
-                        .fillMaxWidth(0.40f)
+                        .weight(1f)
                         .widthIn(min = 72.dp)
                 )
                 DropdownField(
@@ -380,7 +387,7 @@ private fun RecordForm(
                     selected = selectedSets.toString(),
                     onSelected = { onSetsSelected(it.toInt()) },
                     modifier = Modifier
-                        .fillMaxWidth(0.30f)
+                        .weight(1f)
                         .widthIn(min = 72.dp)
                 )
                 DropdownField(
@@ -389,8 +396,8 @@ private fun RecordForm(
                     selected = selectedWeight,
                     onSelected = onWeightSelected,
                     modifier = Modifier
-                        .fillMaxWidth(0.30f)
-                        .widthIn(min = 88.dp)
+                        .weight(1f)
+                        .widthIn(min = 72.dp)
                 )
             }
             Button(
@@ -403,7 +410,6 @@ private fun RecordForm(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DropdownField(
@@ -411,10 +417,12 @@ private fun DropdownField(
     options: List<String>,
     selected: String,
     onSelected: (String) -> Unit,
+    displayTransform: (String) -> String = { it },
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedValue = if (selected.isNotBlank()) selected else options.firstOrNull().orEmpty()
+    val selectedValueRaw = if (selected.isNotBlank()) selected else options.firstOrNull().orEmpty()
+    val selectedValue = displayTransform(selectedValueRaw)
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -441,7 +449,7 @@ private fun DropdownField(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = option,
+                            text = displayTransform(option),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
