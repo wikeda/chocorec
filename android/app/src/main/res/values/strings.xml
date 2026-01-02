@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ちょこRec</string>
+    <string name="app_name">chocoREC</string>
     <string name="action_history">履歴</string>
     <string name="action_exercises">種目</string>
     <string name="tab_week">週次</string>
@@ -12,7 +12,7 @@
     <string name="label_sets">セット</string>
     <string name="label_weight">重さ(kg)</string>
     <string name="button_record">記録する</string>
-    <string name="placeholder_chart">グラフ表示エリア</string>
+    <string name="placeholder_chart">表示する記録がありません</string>
     <string name="history_title">履歴</string>
     <string name="history_empty">記録がありません</string>
     <string name="action_csv_save">CSV保存</string>
@@ -27,8 +27,9 @@
     <string name="label_name">種目名</string>
     <string name="label_color">色</string>
     <string name="placeholder_color">#3b82f6</string>
-    <string name="edit_title">記録を編集</string>
+    <string name="edit_title">編集</string>
     <string name="toast_csv_saved">CSVを保存しました</string>
+    <string name="action_add_new">新規追加</string>
     <string name="menu_input">入力画面</string>
     <string name="menu_exercises">種目管理</string>
     <string name="menu_history">履歴</string>
@@ -36,4 +37,6 @@
     <string name="action_menu">メニュー</string>
     <string name="version_title">バージョン</string>
     <string name="version_label">アプリのバージョン</string>
+    <string name="delete_title">削除の確認</string>
+    <string name="delete_confirm">この種目を削除しますか？</string>
 </resources>

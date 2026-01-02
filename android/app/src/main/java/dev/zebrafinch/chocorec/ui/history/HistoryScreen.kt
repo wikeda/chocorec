@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -230,17 +232,21 @@ private fun EditBottomSheet(
     onSave: (String, String, Int, Int, Float?) -> Unit,
     onDelete: () -> Unit
 ) {
+    val primaryGreen = Color(0xFF10B981)
+    val cancelGray = Color(0xFFE5E7EB)
+    val deleteGray = Color(0xFFD1D5DB)
     val dates = recentDates()
     val exercises = if (availableExercises.isNotEmpty()) availableExercises else listOf(record.exerciseName)
     val counts = (1..50).map { it.toString() }
     val sets = (1..10).map { it.toString() }
-    val weights = listOf("なし") + (5..100 step 5).map { it.toString() }
+    val weights = listOf("??") + (5..100 step 5).map { it.toString() }
 
     var selectedDate by remember(record.id) { mutableStateOf(record.date) }
     var selectedExercise by remember(record.id) { mutableStateOf(record.exerciseName) }
     var selectedCount by remember(record.id) { mutableStateOf(record.count.toString()) }
     var selectedSets by remember(record.id) { mutableStateOf(record.sets.toString()) }
-    var selectedWeight by remember(record.id) { mutableStateOf(record.weight?.toInt()?.toString() ?: "なし") }
+    var selectedWeight by remember(record.id) { mutableStateOf(record.weight?.toInt()?.toString() ?: "??") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -297,18 +303,47 @@ private fun EditBottomSheet(
                             selectedWeight.toFloatOrNull()
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(0.33f)
+                    modifier = Modifier.weight(0.6f),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
                 ) {
                     Text(text = stringResource(R.string.action_save))
                 }
-                Button(onClick = onDelete, modifier = Modifier.fillMaxWidth(0.33f)) {
+                Button(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.weight(0.4f),
+                    colors = ButtonDefaults.buttonColors(containerColor = deleteGray)
+                ) {
                     Text(text = stringResource(R.string.action_delete))
                 }
-                Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(0.33f)) {
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text(text = stringResource(R.string.action_cancel))
+            }
+        }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(text = stringResource(R.string.delete_title)) },
+            text = { Text(text = stringResource(R.string.delete_confirm)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = deleteGray)
+                ) {
+                    Text(text = stringResource(R.string.action_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
                     Text(text = stringResource(R.string.action_cancel))
                 }
             }
-        }
+        )
     }
 }
 

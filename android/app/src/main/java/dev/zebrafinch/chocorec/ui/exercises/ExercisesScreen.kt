@@ -1,8 +1,12 @@
 package dev.zebrafinch.chocorec.ui.exercises
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
@@ -27,8 +32,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,24 +83,23 @@ fun ExercisesScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
+                    TextButton(onClick = {
                         editingExercise = null
                         showSheet = true
                     }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.action_add)
-                        )
+                        Text(text = stringResource(R.string.action_add_new))
                     }
                 }
             )
         }
     ) { innerPadding ->
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (uiState.exercises.isEmpty()) {
@@ -154,7 +162,7 @@ private fun ExerciseRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             BoxColor(exercise.color)
@@ -177,8 +185,11 @@ private fun ExerciseRow(
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            TextButton(onClick = onEdit) {
-                Text(text = stringResource(R.string.action_edit))
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.action_edit)
+                )
             }
         }
     }
@@ -193,12 +204,12 @@ private fun BoxColor(colorHex: String) {
     }
     Column(
         modifier = Modifier
-            .size(32.dp)
+            .size(24.dp)
             .background(color, shape = MaterialTheme.shapes.small)
     ) {}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ExerciseEditSheet(
     exercise: Exercise?,
@@ -208,6 +219,28 @@ private fun ExerciseEditSheet(
 ) {
     var name by remember(exercise?.id) { mutableStateOf(exercise?.name ?: "") }
     var color by remember(exercise?.id) { mutableStateOf(exercise?.color ?: "#3b82f6") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    val primaryGreen = Color(0xFF10B981)
+    val cancelGray = Color(0xFFE5E7EB)
+    val deleteGray = Color(0xFFD1D5DB)
+    val palette = listOf(
+        "#ef4444",
+        "#f97316",
+        "#f59e0b",
+        "#10b981",
+        "#14b8a6",
+        "#06b6d4",
+        "#3b82f6",
+        "#6366f1",
+        "#8b5cf6",
+        "#a855f7",
+        "#ec4899",
+        "#f43f5e",
+        "#84cc16",
+        "#22c55e",
+        "#0ea5e9",
+        "#64748b"
+    )
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -232,23 +265,94 @@ private fun ExerciseEditSheet(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                palette.forEach { swatch ->
+                    val isSelected = swatch.equals(color, ignoreCase = true)
+                    Column(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(
+                                Color(android.graphics.Color.parseColor(swatch)),
+                                shape = MaterialTheme.shapes.small
+                            )
+                            .border(
+                                width = if (isSelected) 2.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
+                                shape = MaterialTheme.shapes.small
+                            )
+                            .clickable { color = swatch }
+                    ) {}
+                }
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Button(onClick = { onSave(name, color) }, modifier = Modifier.fillMaxWidth(0.5f)) {
-                    Text(text = stringResource(R.string.action_save))
-                }
-                if (exercise != null) {
-                    Button(onClick = onDelete, modifier = Modifier.fillMaxWidth(0.5f)) {
-                        Text(text = stringResource(R.string.action_delete))
+                if (exercise == null) {
+                    Button(
+                        onClick = { onSave(name, color) },
+                        modifier = Modifier.weight(0.6f),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
+                    ) {
+                        Text(text = stringResource(R.string.action_save))
+                    }
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(0.4f),
+                        colors = ButtonDefaults.buttonColors(containerColor = cancelGray)
+                    ) {
+                        Text(text = stringResource(R.string.action_cancel))
                     }
                 } else {
-                    Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(0.5f)) {
-                        Text(text = stringResource(R.string.action_cancel))
+                    Button(
+                        onClick = { onSave(name, color) },
+                        modifier = Modifier.weight(0.6f),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
+                    ) {
+                        Text(text = stringResource(R.string.action_save))
+                    }
+                    Button(
+                        onClick = { showDeleteConfirm = true },
+                        modifier = Modifier.weight(0.4f),
+                        colors = ButtonDefaults.buttonColors(containerColor = deleteGray)
+                    ) {
+                        Text(text = stringResource(R.string.action_delete))
                     }
                 }
             }
+            if (exercise != null) {
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = stringResource(R.string.action_cancel))
+                }
+            }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(text = stringResource(R.string.delete_title)) },
+            text = { Text(text = stringResource(R.string.delete_confirm)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = deleteGray)
+                ) {
+                    Text(text = stringResource(R.string.action_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(text = stringResource(R.string.action_cancel))
+                }
+            }
+        )
     }
 }
