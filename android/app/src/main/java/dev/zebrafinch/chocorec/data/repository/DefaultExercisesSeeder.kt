@@ -12,7 +12,8 @@ object DefaultExercisesSeeder {
         Pair("アダクション", "#06b6d4"),
         Pair("ディップス", "#3b82f6"),
         Pair("ショルダープレス", "#6366f1"),
-        Pair("バイセップスカール", "#8b5cf6")
+        Pair("バイセップスカール", "#8b5cf6"),
+        Pair("ピラティス", "#f65ceeff")
     )
 
     fun create(nowIso: String): List<Exercise> {
