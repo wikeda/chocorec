@@ -85,8 +85,18 @@ class MainViewModel(
         }
     }
 
-    fun refresh() {
-        refreshSummary()
+    fun refreshAll() {
+        viewModelScope.launch {
+            val allExercises = exerciseRepository.getAllExercises()
+            allExerciseNames = allExercises.map { it.name }
+            exerciseColors = allExercises.associate { it.name to it.color }
+
+            val exercises = exerciseRepository.getActiveExercises().map { it.name }
+            val selected = _uiState.value.selectedExercise
+            val nextSelected = if (selected in exercises) selected else exercises.firstOrNull().orEmpty()
+            _uiState.update { it.copy(exercises = exercises, selectedExercise = nextSelected) }
+            refreshSummary()
+        }
     }
 
     private fun loadInitial() {

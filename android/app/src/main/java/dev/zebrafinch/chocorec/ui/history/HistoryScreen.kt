@@ -239,13 +239,13 @@ private fun EditBottomSheet(
     val exercises = if (availableExercises.isNotEmpty()) availableExercises else listOf(record.exerciseName)
     val counts = (1..50).map { it.toString() }
     val sets = (1..10).map { it.toString() }
-    val weights = listOf("??") + (5..100 step 5).map { it.toString() }
+    val weights = listOf("なし") + (5..100 step 5).map { it.toString() }
 
     var selectedDate by remember(record.id) { mutableStateOf(record.date) }
     var selectedExercise by remember(record.id) { mutableStateOf(record.exerciseName) }
     var selectedCount by remember(record.id) { mutableStateOf(record.count.toString()) }
     var selectedSets by remember(record.id) { mutableStateOf(record.sets.toString()) }
-    var selectedWeight by remember(record.id) { mutableStateOf(record.weight?.toInt()?.toString() ?: "??") }
+    var selectedWeight by remember(record.id) { mutableStateOf(record.weight?.toInt()?.toString() ?: "なし") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
