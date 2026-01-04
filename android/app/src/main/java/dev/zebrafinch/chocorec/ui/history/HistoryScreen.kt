@@ -53,8 +53,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import dev.zebrafinch.chocorec.R
-import dev.zebrafinch.chocorec.util.DateTimeUtil
 import java.time.LocalDate
+import java.time.DayOfWeek
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,6 +68,17 @@ fun HistoryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val todayLabel = stringResource(R.string.history_today)
+    val yesterdayLabel = stringResource(R.string.history_yesterday)
+    val weekdayLabels = mapOf(
+        DayOfWeek.MONDAY to stringResource(R.string.history_weekday_mon),
+        DayOfWeek.TUESDAY to stringResource(R.string.history_weekday_tue),
+        DayOfWeek.WEDNESDAY to stringResource(R.string.history_weekday_wed),
+        DayOfWeek.THURSDAY to stringResource(R.string.history_weekday_thu),
+        DayOfWeek.FRIDAY to stringResource(R.string.history_weekday_fri),
+        DayOfWeek.SATURDAY to stringResource(R.string.history_weekday_sat),
+        DayOfWeek.SUNDAY to stringResource(R.string.history_weekday_sun)
+    )
     var showEditSheet by remember { mutableStateOf(false) }
     val csvLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv"),
@@ -152,7 +163,13 @@ fun HistoryScreen(
                 items(uiState.groups) { group ->
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = DateTimeUtil.formatHistoryDate(group.date),
+                            text = formatHistoryDate(
+                                dateStr = group.date,
+                                todayLabel = todayLabel,
+                                yesterdayLabel = yesterdayLabel,
+                                weekdayLabels = weekdayLabels,
+                                format = stringResource(R.string.history_date_format)
+                            ),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -213,9 +230,16 @@ private fun HistoryRow(
                     text = record.exerciseName,
                     color = Color(android.graphics.Color.parseColor(record.color))
                 )
-                val weightText = record.weight?.let { " @ ${it}kg" } ?: ""
+                val weightText = record.weight?.let {
+                    stringResource(R.string.history_weight_suffix, it)
+                } ?: ""
                 Text(
-                    text = "${record.count} 回 x ${record.sets} セット$weightText",
+                    text = stringResource(
+                        R.string.history_record_summary,
+                        record.count,
+                        record.sets,
+                        weightText
+                    ),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -235,17 +259,20 @@ private fun EditBottomSheet(
     val primaryGreen = Color(0xFF10B981)
     val cancelGray = Color(0xFFE5E7EB)
     val deleteGray = Color(0xFFD1D5DB)
+    val noneLabel = stringResource(R.string.label_none)
     val dates = recentDates()
     val exercises = if (availableExercises.isNotEmpty()) availableExercises else listOf(record.exerciseName)
     val counts = (1..50).map { it.toString() }
     val sets = (1..10).map { it.toString() }
-    val weights = listOf("なし") + (5..100 step 5).map { it.toString() }
+    val weights = listOf(noneLabel) + (5..100 step 5).map { it.toString() }
 
     var selectedDate by remember(record.id) { mutableStateOf(record.date) }
     var selectedExercise by remember(record.id) { mutableStateOf(record.exerciseName) }
     var selectedCount by remember(record.id) { mutableStateOf(record.count.toString()) }
     var selectedSets by remember(record.id) { mutableStateOf(record.sets.toString()) }
-    var selectedWeight by remember(record.id) { mutableStateOf(record.weight?.toInt()?.toString() ?: "なし") }
+    var selectedWeight by remember(record.id) {
+        mutableStateOf(record.weight?.toInt()?.toString() ?: noneLabel)
+    }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -395,6 +422,27 @@ private fun recentDates(): List<String> {
     val today = LocalDate.now()
     return (0..6).map { offset ->
         today.minusDays(offset.toLong()).toString()
+    }
+}
+
+private fun formatHistoryDate(
+    dateStr: String,
+    todayLabel: String,
+    yesterdayLabel: String,
+    weekdayLabels: Map<DayOfWeek, String>,
+    format: String
+): String {
+    val date = LocalDate.parse(dateStr)
+    val today = LocalDate.now()
+    val yesterday = today.minusDays(1)
+
+    return when (date) {
+        today -> todayLabel
+        yesterday -> yesterdayLabel
+        else -> {
+            val weekday = weekdayLabels[date.dayOfWeek] ?: ""
+            String.format(format, date.monthValue, date.dayOfMonth, weekday)
+        }
     }
 }
 

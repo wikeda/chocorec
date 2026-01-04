@@ -13,7 +13,8 @@ import kotlinx.coroutines.launch
 
 class HistoryViewModel(
     private val trainingRepository: TrainingRepository,
-    private val exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository,
+    private val csvHeaders: List<String>
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState: StateFlow<HistoryUiState> = _uiState
@@ -60,16 +61,6 @@ class HistoryViewModel(
 
     suspend fun buildCsvContent(): String {
         val records = trainingRepository.getAllRecords()
-        val headers = listOf(
-            "日付",
-            "種目",
-            "回数",
-            "セット数",
-            "重さ(kg)",
-            "作成日時",
-            "更新日時"
-        )
-
         val rows = records.map { record ->
             listOf(
                 CsvUtil.escape(record.date),
@@ -83,7 +74,7 @@ class HistoryViewModel(
         }
 
         return buildString {
-            append(headers.joinToString(","))
+            append(csvHeaders.joinToString(","))
             append("\n")
             rows.forEach { row ->
                 append(row)
