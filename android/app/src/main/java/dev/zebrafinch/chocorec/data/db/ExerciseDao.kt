@@ -26,6 +26,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE name = :name AND is_active = 1 LIMIT 1")
     suspend fun getByName(name: String): ExerciseEntity?
 
+    @Query("SELECT * FROM exercises WHERE name = :name LIMIT 1")
+    suspend fun getByNameAny(name: String): ExerciseEntity?
+
     @Query("UPDATE exercises SET is_active = 0, updated_at = :updatedAt WHERE id = :id")
     suspend fun softDelete(id: String, updatedAt: String)
 

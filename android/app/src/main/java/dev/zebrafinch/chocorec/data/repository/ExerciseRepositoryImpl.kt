@@ -33,6 +33,10 @@ class ExerciseRepositoryImpl(
         return dao.getByName(name)?.toDomain()
     }
 
+    override suspend fun getExerciseByNameAny(name: String): Exercise? {
+        return dao.getByNameAny(name)?.toDomain()
+    }
+
     override suspend fun softDeleteExercise(id: String, updatedAt: String) {
         dao.softDelete(id, updatedAt)
     }
