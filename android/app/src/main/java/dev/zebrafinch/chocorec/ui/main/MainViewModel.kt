@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val trainingRepository: TrainingRepository,
-    private val exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository,
+    private val noneLabel: String
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState
@@ -171,7 +172,7 @@ class MainViewModel(
                     it.copy(
                         selectedCount = latest.count,
                         selectedSets = latest.sets,
-                        selectedWeight = latest.weight?.toInt()?.toString() ?: "なし"
+                        selectedWeight = latest.weight?.toInt()?.toString() ?: noneLabel
                     )
                 }
             }
@@ -199,7 +200,7 @@ class MainViewModel(
 
     private fun weightOptions(): List<String> {
         val weights = (5..100 step 5).map { it.toString() }
-        return listOf("なし") + weights
+        return listOf(noneLabel) + weights
     }
 
     private fun parseWeight(value: String): Float? {

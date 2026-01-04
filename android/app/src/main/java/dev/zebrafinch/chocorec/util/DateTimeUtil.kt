@@ -1,6 +1,5 @@
 package dev.zebrafinch.chocorec.util
 
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -17,29 +16,6 @@ object DateTimeUtil {
 
     fun nowIso(): String {
         return LocalDateTime.now().format(dateTimeFormatter)
-    }
-
-    fun formatHistoryDate(dateStr: String): String {
-        val date = LocalDate.parse(dateStr, dateFormatter)
-        val today = LocalDate.now()
-        val yesterday = today.minusDays(1)
-
-        return when (date) {
-            today -> "今日"
-            yesterday -> "昨日"
-            else -> {
-                val weekday = when (date.dayOfWeek) {
-                    DayOfWeek.MONDAY -> "月"
-                    DayOfWeek.TUESDAY -> "火"
-                    DayOfWeek.WEDNESDAY -> "水"
-                    DayOfWeek.THURSDAY -> "木"
-                    DayOfWeek.FRIDAY -> "金"
-                    DayOfWeek.SATURDAY -> "土"
-                    DayOfWeek.SUNDAY -> "日"
-                }
-                "${date.monthValue}月${date.dayOfMonth}日($weekday)"
-            }
-        }
     }
 
     fun formatPickerDate(dateStr: String): String {

@@ -11,10 +11,23 @@
     <string name="label_count">回数</string>
     <string name="label_sets">セット</string>
     <string name="label_weight">重さ(kg)</string>
+    <string name="label_none">なし</string>
     <string name="button_record">記録する</string>
     <string name="placeholder_chart">表示する記録がありません</string>
     <string name="history_title">履歴</string>
     <string name="history_empty">記録がありません</string>
+    <string name="history_today">今日</string>
+    <string name="history_yesterday">昨日</string>
+    <string name="history_weekday_mon">月</string>
+    <string name="history_weekday_tue">火</string>
+    <string name="history_weekday_wed">水</string>
+    <string name="history_weekday_thu">木</string>
+    <string name="history_weekday_fri">金</string>
+    <string name="history_weekday_sat">土</string>
+    <string name="history_weekday_sun">日</string>
+    <string name="history_date_format">%1$d月%2$d日(%3$s)</string>
+    <string name="history_weight_suffix"> @ %1$skg</string>
+    <string name="history_record_summary">%1$d 回 x %2$d セット%3$s</string>
     <string name="action_csv_save">CSV保存</string>
     <string name="action_edit">編集</string>
     <string name="action_back">戻る</string>
@@ -23,6 +36,8 @@
     <string name="action_cancel">キャンセル</string>
     <string name="exercises_title">種目管理</string>
     <string name="exercises_empty">種目がありません</string>
+    <string name="exercises_move_up">上に移動</string>
+    <string name="exercises_move_down">下に移動</string>
     <string name="action_add">追加</string>
     <string name="label_name">種目名</string>
     <string name="label_color">色</string>
@@ -39,4 +54,11 @@
     <string name="version_label">アプリのバージョン</string>
     <string name="delete_title">削除の確認</string>
     <string name="delete_confirm">この種目を削除しますか？</string>
+    <string name="csv_header_date">日付</string>
+    <string name="csv_header_exercise">種目</string>
+    <string name="csv_header_count">回数</string>
+    <string name="csv_header_sets">セット数</string>
+    <string name="csv_header_weight">重さ(kg)</string>
+    <string name="csv_header_created_at">作成日時</string>
+    <string name="csv_header_updated_at">更新日時</string>
 </resources>

@@ -174,13 +174,13 @@ private fun ExerciseRow(
                 IconButton(onClick = onMoveUp, enabled = canMoveUp) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = "上に移動"
+                        contentDescription = stringResource(R.string.exercises_move_up)
                     )
                 }
                 IconButton(onClick = onMoveDown, enabled = canMoveDown) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "下に移動"
+                        contentDescription = stringResource(R.string.exercises_move_down)
                     )
                 }
             }
