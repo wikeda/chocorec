@@ -34,8 +34,21 @@ class ExercisesViewModel(
         viewModelScope.launch {
             val trimmedName = name.trim()
             if (trimmedName.isBlank()) return@launch
-            val existing = exerciseRepository.getExerciseByName(trimmedName)
-            if (existing != null) return@launch
+            val existingAny = exerciseRepository.getExerciseByNameAny(trimmedName)
+            if (existingAny != null) {
+                if (existingAny.isActive) return@launch
+                val now = DateTimeUtil.nowIso()
+                val order = (_uiState.value.exercises.maxOfOrNull { it.order } ?: -1) + 1
+                val revived = existingAny.copy(
+                    color = color,
+                    order = order,
+                    isActive = true,
+                    updatedAt = now
+                )
+                exerciseRepository.updateExercise(revived)
+                loadExercises()
+                return@launch
+            }
 
             val order = (_uiState.value.exercises.maxOfOrNull { it.order } ?: -1) + 1
             val now = DateTimeUtil.nowIso()

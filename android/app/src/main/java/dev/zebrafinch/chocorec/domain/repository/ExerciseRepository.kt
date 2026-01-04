@@ -9,6 +9,7 @@ interface ExerciseRepository {
     suspend fun getActiveExercises(): List<Exercise>
     suspend fun getExerciseById(id: String): Exercise?
     suspend fun getExerciseByName(name: String): Exercise?
+    suspend fun getExerciseByNameAny(name: String): Exercise?
     suspend fun softDeleteExercise(id: String, updatedAt: String)
     suspend fun updateExerciseOrder(id: String, order: Int, updatedAt: String)
 }
