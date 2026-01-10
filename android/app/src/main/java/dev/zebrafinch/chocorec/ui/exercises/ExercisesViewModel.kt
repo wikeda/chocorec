@@ -2,6 +2,8 @@ package dev.zebrafinch.chocorec.ui.exercises
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.os.Bundle
+import com.google.firebase.analytics.FirebaseAnalytics
 import dev.zebrafinch.chocorec.domain.model.Exercise
 import dev.zebrafinch.chocorec.domain.repository.ExerciseRepository
 import dev.zebrafinch.chocorec.domain.repository.TrainingRepository
@@ -14,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class ExercisesViewModel(
     private val exerciseRepository: ExerciseRepository,
-    private val trainingRepository: TrainingRepository
+    private val trainingRepository: TrainingRepository,
+    private val analytics: FirebaseAnalytics
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState: StateFlow<ExercisesUiState> = _uiState
@@ -46,6 +49,9 @@ class ExercisesViewModel(
                     updatedAt = now
                 )
                 exerciseRepository.updateExercise(revived)
+                analytics.logEvent("exercise_added", Bundle().apply {
+                    putBoolean("revived", true)
+                })
                 loadExercises()
                 return@launch
             }
@@ -62,6 +68,9 @@ class ExercisesViewModel(
                 updatedAt = now
             )
             exerciseRepository.addExercise(exercise)
+            analytics.logEvent("exercise_added", Bundle().apply {
+                putBoolean("revived", false)
+            })
             loadExercises()
         }
     }
@@ -89,6 +98,7 @@ class ExercisesViewModel(
     fun deleteExercise(id: String) {
         viewModelScope.launch {
             exerciseRepository.softDeleteExercise(id, DateTimeUtil.nowIso())
+            analytics.logEvent("exercise_deleted", null)
             loadExercises()
         }
     }

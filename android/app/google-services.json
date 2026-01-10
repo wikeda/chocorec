@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "670502482182",
+    "project_id": "chocorec-3a3eb",
+    "storage_bucket": "chocorec-3a3eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670502482182:android:b37f8bd6ebf15731b4ae87",
+        "android_client_info": {
+          "package_name": "dev.zebrafinch.chocorec"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsMy-HzFPsjyuuyDLq0dMDji5t8nxPtng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
