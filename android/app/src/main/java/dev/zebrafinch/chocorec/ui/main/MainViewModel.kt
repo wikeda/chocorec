@@ -1,12 +1,13 @@
 package dev.zebrafinch.chocorec.ui.main
 
+import android.os.Bundle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.analytics.FirebaseAnalytics
 import dev.zebrafinch.chocorec.domain.model.TrainingRecord
 import dev.zebrafinch.chocorec.domain.repository.ExerciseRepository
 import dev.zebrafinch.chocorec.domain.repository.TrainingRepository
 import dev.zebrafinch.chocorec.util.DateTimeUtil
-import com.google.firebase.analytics.FirebaseAnalytics
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -27,6 +28,7 @@ class MainViewModel(
     val uiState: StateFlow<MainUiState> = _uiState
     private var exerciseColors: Map<String, String> = emptyMap()
     private var allExerciseNames: List<String> = emptyList()
+    private var exerciseIds: Map<String, String> = emptyMap()
 
     init {
         loadInitial()
@@ -83,7 +85,7 @@ class MainViewModel(
 
         viewModelScope.launch {
             trainingRepository.addRecord(record)
-            analytics.logEvent("record_saved", null)
+            logRecordSaved(state.selectedExercise)
             refreshSummary()
             selectNextExercise()
         }
@@ -94,6 +96,7 @@ class MainViewModel(
             val allExercises = exerciseRepository.getAllExercises()
             allExerciseNames = allExercises.map { it.name }
             exerciseColors = allExercises.associate { it.name to it.color }
+            exerciseIds = allExercises.associate { it.name to it.id }
 
             val exercises = exerciseRepository.getActiveExercises().map { it.name }
             val selected = _uiState.value.selectedExercise
@@ -108,6 +111,7 @@ class MainViewModel(
             val allExercises = exerciseRepository.getAllExercises()
             allExerciseNames = allExercises.map { it.name }
             exerciseColors = allExercises.associate { it.name to it.color }
+            exerciseIds = allExercises.associate { it.name to it.id }
 
             val exercises = exerciseRepository.getActiveExercises().map { it.name }
             val dates = recentDates()
@@ -208,6 +212,17 @@ class MainViewModel(
 
     private fun parseWeight(value: String): Float? {
         return value.toFloatOrNull()
+    }
+
+    private fun logRecordSaved(exerciseName: String) {
+        val exerciseId = exerciseIds[exerciseName].orEmpty()
+        val isDefault = exerciseId.startsWith("default-")
+        val analyticsId = if (isDefault) exerciseId else "custom"
+        val params = Bundle().apply {
+            putString("exercise_id", analyticsId)
+            putBoolean("exercise_is_default", isDefault)
+        }
+        analytics.logEvent("record_saved", params)
     }
 
     private fun dateRange(periodType: PeriodType, periodOffset: Int): Pair<String, String> {

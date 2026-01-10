@@ -49,9 +49,7 @@ class ExercisesViewModel(
                     updatedAt = now
                 )
                 exerciseRepository.updateExercise(revived)
-                analytics.logEvent("exercise_added", Bundle().apply {
-                    putBoolean("revived", true)
-                })
+                logExerciseAdded(revived = true, exercise = revived, includeName = false)
                 loadExercises()
                 return@launch
             }
@@ -68,9 +66,7 @@ class ExercisesViewModel(
                 updatedAt = now
             )
             exerciseRepository.addExercise(exercise)
-            analytics.logEvent("exercise_added", Bundle().apply {
-                putBoolean("revived", false)
-            })
+            logExerciseAdded(revived = false, exercise = exercise, includeName = true)
             loadExercises()
         }
     }
@@ -118,6 +114,20 @@ class ExercisesViewModel(
             exerciseRepository.updateExerciseOrder(target.id, current.order, now)
             loadExercises()
         }
+    }
+
+    private fun logExerciseAdded(revived: Boolean, exercise: Exercise, includeName: Boolean) {
+        val isDefault = exercise.id.startsWith("default-")
+        val analyticsId = if (isDefault) exercise.id else "custom"
+        val params = Bundle().apply {
+            putBoolean("revived", revived)
+            putBoolean("exercise_is_default", isDefault)
+            putString("exercise_id", analyticsId)
+            if (includeName && !isDefault) {
+                putString("exercise_name", exercise.name)
+            }
+        }
+        analytics.logEvent("exercise_added", params)
     }
 }
 
