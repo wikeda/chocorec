@@ -6,6 +6,7 @@ import dev.zebrafinch.chocorec.domain.model.TrainingRecord
 import dev.zebrafinch.chocorec.domain.repository.ExerciseRepository
 import dev.zebrafinch.chocorec.domain.repository.TrainingRepository
 import dev.zebrafinch.chocorec.util.DateTimeUtil
+import com.google.firebase.analytics.FirebaseAnalytics
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -19,7 +20,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(
     private val trainingRepository: TrainingRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val noneLabel: String
+    private val noneLabel: String,
+    private val analytics: FirebaseAnalytics
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState
@@ -81,6 +83,7 @@ class MainViewModel(
 
         viewModelScope.launch {
             trainingRepository.addRecord(record)
+            analytics.logEvent("record_saved", null)
             refreshSummary()
             selectNextExercise()
         }

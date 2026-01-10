@@ -3,6 +3,7 @@ package dev.zebrafinch.chocorec.ui.exercises
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.analytics.FirebaseAnalytics
 import dev.zebrafinch.chocorec.di.RepositoryProvider
 
 class ExercisesViewModelFactory(
@@ -12,8 +13,9 @@ class ExercisesViewModelFactory(
         if (modelClass.isAssignableFrom(ExercisesViewModel::class.java)) {
             val exerciseRepo = RepositoryProvider.exerciseRepository(context)
             val trainingRepo = RepositoryProvider.trainingRepository(context)
+            val analytics = FirebaseAnalytics.getInstance(context)
             @Suppress("UNCHECKED_CAST")
-            return ExercisesViewModel(exerciseRepo, trainingRepo) as T
+            return ExercisesViewModel(exerciseRepo, trainingRepo, analytics) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

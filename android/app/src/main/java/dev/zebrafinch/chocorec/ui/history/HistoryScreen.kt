@@ -52,6 +52,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import com.google.firebase.analytics.FirebaseAnalytics
 import dev.zebrafinch.chocorec.R
 import java.time.LocalDate
 import java.time.DayOfWeek
@@ -67,6 +68,7 @@ fun HistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val analytics = remember { FirebaseAnalytics.getInstance(context) }
     val scope = rememberCoroutineScope()
     val todayLabel = stringResource(R.string.history_today)
     val yesterdayLabel = stringResource(R.string.history_yesterday)
@@ -88,6 +90,7 @@ fun HistoryScreen(
                     val content = viewModel.buildCsvContent()
                     val saved = writeCsv(context, uri, content)
                     if (saved) {
+                        analytics.logEvent("export_csv", null)
                         Toast.makeText(
                             context,
                             context.getString(R.string.toast_csv_saved),
